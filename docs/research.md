@@ -196,7 +196,7 @@ measured on the local dataset of section 6.
 
 - **Both detectors call the car rapide a truck**, in both photos where it
   appears ("truck" for COCO, "trailer truck" for YOLOE). The car rapide is
-  the most common minibus of Dakar.
+  the emblematic minibus of Dakar's informal transport.
 - The open-vocabulary model fixes other errors: it sees the small BRT bus
   that COCO misses and calls a city bus a "tour bus" where COCO
   says "truck". Its fine-grained labels ("suv", "police car", "family car")
