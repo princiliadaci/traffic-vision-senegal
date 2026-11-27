@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "traffic-vision-senegal"
+version = "0.1.0"
+description = "Traffic Vision: counting road users from video to support mobility planning in Senegal"
+readme = "README.md"
+license = { text = "MIT" }
+authors = [{ name = "Princilia DACI" }]
+maintainers = [{ name = "Princilia DACI" }]
+requires-python = ">=3.10"
+keywords = ["computer vision", "traffic counting", "object tracking", "YOLO", "ByteTrack", "Dakar", "Senegal", "Youth Olympic Games", "urban mobility"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: MIT License",
+  "Topic :: Scientific/Engineering :: Image Recognition",
+]
+dependencies = [
+  "ultralytics>=8.3",
+  "lap>=0.5.12",
+  "opencv-python>=4.8",
+  "numpy>=1.24",
+  "pandas>=2.0",
+  "matplotlib>=3.7",
+  "tabulate>=0.9",
+  "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+dashboard = ["streamlit>=1.35"]
+dev = ["pytest>=7.4"]
+
+[project.urls]
+Homepage = "https://github.com/princiliadaci/traffic-vision-senegal"
+
+[project.scripts]
+traffic-vision = "traffic_vision.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["traffic_vision*"]

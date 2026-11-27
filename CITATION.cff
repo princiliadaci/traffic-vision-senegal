@@ -1,0 +1,16 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "Traffic Vision Senegal: counting road users from video to support mobility planning"
+authors:
+  - family-names: "DACI"
+    given-names: "Princilia"
+    affiliation: "African Institute for Mathematical Sciences (AIMS) Senegal"
+version: 0.1.0
+date-released: 2026-11-27
+license: MIT
+repository-code: "https://github.com/princiliadaci/traffic-vision-senegal"
+keywords:
+  - computer vision
+  - traffic counting
+  - Dakar 2026 Youth Olympic Games
+  - urban mobility

@@ -1,0 +1,72 @@
+{
+  "config": {
+    "video": "data/12159587-hd_1920_1080_50fps.mp4",
+    "scene_id": "demo_pexels",
+    "model": "yolo11n.pt",
+    "classes": [
+      "pedestrian",
+      "bicycle",
+      "motorcycle",
+      "car",
+      "bus",
+      "truck"
+    ],
+    "confidence": 0.35,
+    "iou": 0.5,
+    "imgsz": 960,
+    "stride": 2,
+    "line": [
+      [
+        0.05,
+        0.62
+      ],
+      [
+        0.76,
+        0.62
+      ]
+    ],
+    "line_directions": [
+      "towards_camera",
+      "away_from_camera"
+    ],
+    "max_seconds": null,
+    "output_dir": "outputs",
+    "save_video": true,
+    "tracker": "bytetrack.yaml",
+    "device": null,
+    "drop_riders": true
+  },
+  "video": {
+    "fps": 50.0,
+    "width": 1920,
+    "height": 1080,
+    "frames_read": 2858,
+    "duration_s": 57.16
+  },
+  "frames_processed": 1429,
+  "frames_without_selected_objects": 0,
+  "unique_tracks_seen": {
+    "bicycle": 3,
+    "bus": 64,
+    "car": 322,
+    "motorcycle": 10,
+    "pedestrian": 66,
+    "truck": 175
+  },
+  "line_crossings": {
+    "car": {
+      "away_from_camera": 29,
+      "towards_camera": 15
+    },
+    "bus": {
+      "towards_camera": 2,
+      "away_from_camera": 1
+    },
+    "truck": {
+      "towards_camera": 1,
+      "away_from_camera": 3
+    }
+  },
+  "processing_seconds": 257.3,
+  "author": "traffic-vision-senegal, Princilia DACI"
+}

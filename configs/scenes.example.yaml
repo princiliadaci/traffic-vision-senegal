@@ -1,0 +1,48 @@
+# Scene file for `traffic-vision run --config configs/scenes.example.yaml --scene <scene_id>`
+#
+# One scene = one camera position and one period. To evaluate a measure, record
+# the same place, same weekday and same time of day, once before the measure and
+# once while it applies, then run `traffic-vision compare`.
+#
+# The scenes below are templates built around the Dakar 2026 Youth Olympic Games
+# traffic plan (see docs/context_joj_dakar_2026.md). The video files are not
+# shipped with the repository: record or obtain your own and update the paths.
+# Line points are fractions of the frame (x, y), so they do not depend on resolution.
+
+defaults:
+  model: yolo11n.pt
+  confidence: 0.35
+  imgsz: 960
+  classes: [pedestrian, bicycle, motorcycle, car, bus, truck]
+  output_dir: outputs
+
+scenes:
+  - scene_id: corniche_ouest_before
+    description: Corniche Ouest, normal traffic, weekday 7:00-8:00
+    period: before
+    video: data/corniche_ouest_before.mp4
+    line: [[0.05, 0.62], [0.95, 0.62]]
+    line_directions: [to_ouakam, to_fann]
+
+  - scene_id: corniche_ouest_during
+    description: Corniche Ouest under the Games restrictions, same weekday and hour
+    period: during
+    video: data/corniche_ouest_during.mp4
+    line: [[0.05, 0.62], [0.95, 0.62]]
+    line_directions: [to_ouakam, to_fann]
+
+  - scene_id: blaise_diagne_bus_lanes
+    description: Avenue Blaise Diagne, two lanes reserved for accredited buses
+    period: during
+    video: data/blaise_diagne_during.mp4
+    line: [[0.10, 0.70], [0.90, 0.70]]
+    line_directions: [northbound, southbound]
+    classes: [bus, car, truck, motorcycle]
+
+  - scene_id: demo_pexels
+    description: Static-camera stock clip (Pexels) used for the demo in the README; not Dakar
+    period: demo
+    video: data/12159587-hd_1920_1080_50fps.mp4
+    line: [[0.05, 0.62], [0.76, 0.62]]
+    line_directions: [towards_camera, away_from_camera]
+    stride: 2

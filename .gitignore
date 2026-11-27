@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+
+# Data, weights and run outputs (large or personal)
+data/
+outputs/
+runs/
+*.pt
+*.mp4
+*.avi
+*.mov
+*.mkv
+!examples/demo/*
+
+# Editors and OS
+.idea/
+.vscode/
+.DS_Store
