@@ -1,10 +1,12 @@
 # Traffic Vision Senegal
 
+[![tests](https://github.com/princiliadaci/traffic-vision-senegal/actions/workflows/tests.yml/badge.svg)](https://github.com/princiliadaci/traffic-vision-senegal/actions/workflows/tests.yml)
+
 **Counting road users from video to support mobility planning in Senegal.**
 
-On the morning of 7 November 2026, during the Dakar Youth Olympic Games, the
-Corniche Ouest was closed to cars and two lanes of avenue Blaise Diagne were
-kept for accredited buses. Where did the cars go? Did the buses actually use
+In early November 2026, during the Dakar Youth Olympic Games, the Corniche
+Ouest was closed to cars for hours at a time and two lanes of avenue Blaise
+Diagne were kept for accredited buses. Where did the cars go? Did the buses actually use
 their lanes? Answering with numbers is hard, because traffic planning in Dakar
 still leans on occasional manual counts.
 
