@@ -1,9 +1,0 @@
-# This registry has moved to measures/dakar_joj_2026.yaml.
-#
-# Measures are now kept in measures/, one registry per city and policy
-# (Dakar 2026 Youth Olympic Games, Dakar BRT corridor, Lagos okada ban,
-# Kigali car-free days). Field reference: measures/README.md.
-#
-#   traffic-vision measures --list
-
-measures: []
