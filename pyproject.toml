@@ -40,3 +40,7 @@ traffic-vision = "traffic_vision.cli:main"
 
 [tool.setuptools.packages.find]
 include = ["traffic_vision*"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
