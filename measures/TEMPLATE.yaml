@@ -1,0 +1,35 @@
+# Template: describe the mobility measures of your city, event or project.
+# Copy this file, fill it in, then run:
+#
+#   traffic-vision measures --registry measures/<your_file>.yaml
+#   traffic-vision check <measure_id> <run_folder> --registry measures/<your_file>.yaml
+#
+# Every measure needs at least one source (official text, press release or
+# newspaper). Field reference: measures/README.md.
+
+city: <city>
+country: <country>
+context: generic          # a profile in contexts/ (local vehicle types, PCE, law)
+policy_type: event        # event | infrastructure | regulation | recurring
+summary: <one sentence on the plan or the policy>
+
+measures:
+
+  - id: my_bus_lane
+    name: <what the measure is, in one line>
+    kind: reserved_lane   # reserved_lane | class_ban | movement_ban | service_frequency | closure
+    place: <road, section, side>
+    period: ["2026-01-01", "open"]   # first day, last day (or "open")
+    window: "06:00-21:00"            # daily hours; remove for all day; may cross midnight
+    recurrence: ""                   # e.g. "every Sunday"
+    allowed_classes: [bus]           # reserved_lane, service_frequency
+    banned_classes: []               # class_ban, movement_ban (empty = all vehicles)
+    zone: bus_lane                   # polygon name used when running the video
+    lines: []                        # movement_ban: [from_line, to_line]
+    expected_per_hour: null          # service_frequency: promised vehicles per hour
+    indicator: <what the video gives>
+    observability: partial           # high | partial | low
+    video_cannot_see: <permits, weights, purpose of the trip...>
+    notes: ""
+    sources:
+      - https://<source>

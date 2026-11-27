@@ -1,0 +1,99 @@
+# Rules of the Dakar Bus Rapid Transit (BRT) corridor. Worked example of a
+# permanent infrastructure: the questions are whether the dedicated lane stays
+# free and whether the rules around it hold, month after month.
+#
+# Field reference: measures/README.md. Check the official texts before reuse.
+
+city: Dakar (Guediawaye to Petersen)
+country: Senegal
+context: dakar
+policy_type: infrastructure
+summary: 18.3 km electric BRT line on a dedicated corridor, operated under the authority of CETUD, with a traffic plan for its zone of influence.
+
+measures:
+
+  - id: brt_dedicated_lane
+    name: BRT corridor reserved for BRT buses
+    kind: reserved_lane
+    place: BRT corridor, Guediawaye to Petersen
+    period: ["2024-05-15", "open"]
+    allowed_classes: [bus]
+    zone: brt_lane
+    indicator: >
+      Vehicles other than buses entering the dedicated lane per hour, and the
+      share of buses among lane users; pedestrians crossing the lane can be
+      counted with a line across it.
+    observability: high
+    video_cannot_see: >
+      Whether a bus in the lane is a BRT bus or another bus; emergency vehicles
+      are allowed and look like cars or vans
+    notes: >
+      A newspaper reported, months after the opening, that the corridor was
+      regularly entered by pedestrians, unauthorised vehicles and traders.
+      Operations started the day after a coordination meeting held on 14 May 2024.
+    sources:
+      - https://seneplus.com/node/207478
+      - https://senego.com/sunubrt-a-dakar-lignes-tarifs-et-regles-pratiques-pour-voyager-sur-183-km_2007353.html
+
+  - id: brt_corridor_trucks
+    name: Goods vehicles over 3.5 t banned on the BRT corridor and its zone of influence, 6:00 to 21:00
+    kind: class_ban
+    place: BRT corridor and its zone of influence
+    period: ["2024-07-29", "open"]
+    window: "06:00-21:00"
+    banned_classes: [truck]
+    indicator: Trucks per hour from 6:00 to 21:00 against the night hours, on the corridor and parallel streets.
+    observability: partial
+    video_cannot_see: Gross weight over 3.5 t; COCO "truck" also covers vans and pickups
+    notes: Part of the traffic plan of the zone of influence set by the prefect of Dakar.
+    sources:
+      - https://fr.allafrica.com/stories/202407290314.html
+      - https://www.dakaractu.com/Le-Prefet-annonce-un-plan-de-circulation-sur-la-zone-d-influence-du-BRT-a-compter-du-29-juillet_a251519.html
+
+  - id: brt_carts_ban
+    name: Handcarts and animal-drawn carts banned in the BRT zone of influence
+    kind: class_ban
+    place: BRT zone of influence
+    period: ["2024-07-26", "open"]
+    banned_classes: [cart]
+    indicator: Carts per hour on the corridor before and after the strict enforcement announced for 8 January 2026.
+    observability: low
+    video_cannot_see: >
+      Carts are not a COCO class. Open-vocabulary models have "horse cart" and
+      "cart" labels but were not validated on Dakar carts: label a local sample
+      before relying on them
+    notes: The prefect announced strict enforcement from 8 January 2026, impounding carts found in the zone.
+    sources:
+      - https://fr.allafrica.com/stories/202601060041.html
+      - https://fr.allafrica.com/stories/202601060078.html
+
+  - id: brt_service_frequency
+    name: Published BRT frequency, lines B1 and B2 every 6 minutes, Monday to Saturday
+    kind: service_frequency
+    place: BRT corridor, on a section served by both B1 and B2, both directions
+    period: ["2024-05-15", "open"]
+    window: "06:00-21:00"
+    recurrence: Monday to Saturday (Sundays and holidays have a lower published frequency)
+    allowed_classes: [bus]
+    expected_per_hour: 40
+    indicator: >
+      BRT buses per hour crossing a line across the corridor, against the 40
+      per hour implied by the published timetable (10 per hour and per
+      direction for each of the two lines). A gap shows lost runs, bunching
+      or a timetable change.
+    observability: partial
+    video_cannot_see: >
+      The line number (B1, B2, B3) and the direction of service unless the
+      line is drawn across one carriageway; any bus entering the corridor is
+      counted, so check first that only BRT buses use it
+    notes: >
+      Published frequencies change: the operator reported a departure every
+      two minutes at peak hours one year after the opening, and a third line
+      (B3) runs at peak hours. The start date is the opening of the corridor;
+      B2 may have started later. Update expected_per_hour with the timetable in
+      force on the day of the recording.
+    sources:
+      - https://au-senegal.com/brt-dakar-lignes-stations-tarifs-et-comment-l-utiliser,18546.html
+      - https://senego.com/sunubrt-a-dakar-lignes-tarifs-et-regles-pratiques-pour-voyager-sur-183-km_2007353.html
+      - https://en.wikipedia.org/wiki/Sunu_BRT
+      - https://senego.com/sunubrt-1-an-de-transformation-de-la-mobilite-urbaine-a-dakar_1837597.html

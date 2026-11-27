@@ -1,0 +1,27 @@
+# Context profile: Kigali (Rwanda). Illustrative: check with local partners.
+
+name: kigali
+country: Rwanda
+languages: [Kinyarwanda, English, French]
+
+local_vehicle_types:
+  - name: moto-taxi
+    core_class: motorcycle
+    description: Licensed motorbike taxi
+    model_labels: [moped, scooter]
+  - name: city bus
+    core_class: bus
+    model_labels: [tour bus, minibus]
+  - name: taxi voiture
+    core_class: car
+    model_labels: [taxi]
+
+pce: {}
+
+legal:
+  data_protection: Law no. 058/2021 of 13 October 2021 relating to the protection of personal data and privacy
+  authority: National Cyber Security Authority (NCSA)
+  transport_authority: City of Kigali
+
+registries:
+  - measures/kigali_car_free_day.yaml

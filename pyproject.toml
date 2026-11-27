@@ -4,14 +4,14 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "traffic-vision-senegal"
-version = "0.2.0"
-description = "Traffic Vision: measuring the effect of mobility measures from video in Senegal (Dakar 2026 Youth Olympic Games)"
+version = "0.3.0"
+description = "Traffic Vision: measuring urban mobility policies from video in African cities, with honest uncertainty"
 readme = "README.md"
 license = { text = "MIT" }
 authors = [{ name = "Princilia DACI" }]
 maintainers = [{ name = "Princilia DACI" }]
 requires-python = ">=3.10"
-keywords = ["computer vision", "traffic counting", "object tracking", "YOLO", "ByteTrack", "Dakar", "Senegal", "Youth Olympic Games", "urban mobility", "policy evaluation", "difference-in-differences"]
+keywords = ["computer vision", "traffic counting", "object tracking", "YOLO", "ByteTrack", "Dakar", "Senegal", "Youth Olympic Games", "urban mobility", "policy evaluation", "difference-in-differences", "prediction-powered inference", "open-vocabulary detection"]
 classifiers = [
   "Programming Language :: Python :: 3",
   "License :: OSI Approved :: MIT License",
@@ -29,7 +29,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dashboard = ["streamlit>=1.35"]
+dashboard = ["streamlit>=1.50"]
 dev = ["pytest>=7.4"]
 
 [project.urls]

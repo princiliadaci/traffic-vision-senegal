@@ -12,7 +12,7 @@ This page gathers the public information on the mobility plan and on the
 technology used around it, then explains where this repository fits. Every
 figure comes from the sources listed at the end; check the official documents
 before reusing them. The measures are also stored, one by one, in
-[`configs/joj_measures.yaml`](../configs/joj_measures.yaml).
+[`measures/dakar_joj_2026.yaml`](../measures/dakar_joj_2026.yaml).
 
 ![Timeline of the measures in the registry](img/joj_measures_timeline.png)
 

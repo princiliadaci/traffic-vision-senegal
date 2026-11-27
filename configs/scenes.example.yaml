@@ -1,19 +1,22 @@
 # Scene file for `traffic-vision run --config configs/scenes.example.yaml --scene <scene_id>`
 #
 # One scene = one camera position and one period. The templates below follow
-# the study design of docs/research.md for the Dakar 2026 Youth Olympic Games.
+# the study design of docs/research.md, on its worked example: the Dakar 2026
+# Youth Olympic Games. For another city, change `context` (contexts/) and point
+# `measure` to your own registry (measures/TEMPLATE.yaml).
 # The video files are not shipped with the repository: record or obtain your
 # own (with the authorisations required by Law 2008-12) and update the paths.
 #
 # Points are fractions of the frame (x, y), so they do not depend on resolution.
-# `measure` links a scene to an entry of configs/joj_measures.yaml.
+# `measure` links a scene to an entry of a registry in measures/.
 # `start_clock` is the clock time of the first frame; rules with hours need it.
 
 defaults:
+  context: dakar          # local vehicle names: car rapide, Ndiaga Ndiaye, jakarta, charrette...
   model: yolo11n.pt
   confidence: 0.35
   imgsz: 960
-  classes: [pedestrian, bicycle, motorcycle, car, bus, truck]
+  classes: [pedestrian, bicycle, motorcycle, tricycle, car, bus, truck, cart]
   output_dir: outputs
 
 scenes:

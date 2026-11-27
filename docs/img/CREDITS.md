@@ -13,5 +13,9 @@ under the same license as their original.
 
 Figures made for this project:
 
-- `joj_measures_timeline.png`: `python scripts/plot_measures_timeline.py`, from `configs/joj_measures.yaml`.
+- `joj_measures_timeline.png`: `python scripts/plot_measures_timeline.py`, from `measures/dakar_joj_2026.yaml`.
 - `../results/simulation_coverage.png`: `python scripts/simulate_evaluation.py`.
+- `../results/simulation_cameras.png` and `../results/simulation_lookalike.png`: `python scripts/simulate_evaluation.py`.
+- `../results/open_vocabulary_probe.png`: `python scripts/probe_open_vocabulary.py`. It shows
+  `dakar_car_rapide_hlm.jpg` (Lisa Coulaud, CC BY-SA 4.0) and `dakar_traffic.jpg` (Ji-Elle,
+  public domain) with boxes and labels drawn on them; the figure is shared under CC BY-SA 4.0.

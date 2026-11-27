@@ -1,0 +1,40 @@
+# Car-free days of Kigali. Worked example of a recurring closure, outside
+# Senegal, already evaluated with air-quality sensors but not, to my knowledge,
+# with traffic counts.
+#
+# Field reference: measures/README.md. Check the official texts before reuse.
+
+city: Kigali
+country: Rwanda
+context: kigali
+policy_type: recurring
+summary: Since 2016, major roads closed to motor vehicles on Sunday mornings (twice a month since 2017) for walking, cycling and group exercise.
+
+measures:
+
+  - id: kigali_car_free_day
+    name: Car-free day, major roads closed to motor vehicles
+    kind: class_ban
+    place: Main route from the city centre to the Amahoro stadium in Remera, and other roads announced by the City of Kigali
+    period: ["2016-05-01", "open"]
+    window: "07:00-11:00"
+    recurrence: monthly from May 2016, first and third Sunday of each month since 2017
+    banned_classes: [motorcycle, tricycle, car, bus, truck]
+    zone: closed_road
+    indicator: >
+      Motor vehicles entering the closed section per hour during the event
+      (compliance), pedestrians and cyclists using it, and, on the parallel
+      routes, the extra traffic against an ordinary Sunday
+      (difference-in-differences).
+    observability: high
+    video_cannot_see: Authorised vehicles (organisers, ambulances)
+    notes: >
+      A study with air-quality monitors found PM2.5 about 15% lower on car-free
+      days; a 2026 study gives 7:00 to 11:00 as the restricted hours. Counting
+      traffic would show how much of that change comes from fewer vehicles on
+      the closed roads and how much traffic moved to other streets.
+    sources:
+      - https://climate-chance.org/en/best-pratices/kigali-car-free-day
+      - https://www.ccacoalition.org/resources/car-free-days-sustainable-urban-transport-emission-reduction-strategies-evidence-kigali-city-rwanda
+      - https://www.theigc.org/publications/car-free-days-pollution-free-cities-reflections-clean-urban-transport-rwanda
+      - https://newtimes.co.rw/lifestyle/car-free-day-what-impact

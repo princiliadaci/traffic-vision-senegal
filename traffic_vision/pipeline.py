@@ -1,11 +1,14 @@
 """Detect, track and count road users in a video.
 
-Detection uses a YOLO model (YOLO11 by default) and tracking uses ByteTrack,
-both through Ultralytics. Each run writes a folder with:
+Detection uses an Ultralytics model (YOLO11 trained on COCO by default; a
+fine-tuned model or the open-vocabulary YOLOE prompt-free model work too) and
+tracking uses ByteTrack. Model labels are mapped to eight core classes, with
+the local names of a context profile first (``contexts/``). Each run writes a
+folder with:
 
     annotated.mp4    the video with boxes, track ids, the counting line and live counters
     detections.csv   one row per tracked object per processed frame
-    crossings.csv    one row per object crossing the counting line
+    crossings.csv    one row per object crossing the counting line or an extra line
     zone_events.csv  one row per object using a zone (a reserved lane), if zones are set
     summary.json     run settings and totals
 
@@ -29,7 +32,7 @@ import cv2
 import numpy as np
 
 from .counting import CountingLine
-from .taxonomy import ROAD_CLASSES, model_class_ids
+from .taxonomy import RIDDEN_CLASSES, ROAD_CLASSES, context_aliases, load_context, model_class_ids
 from .zones import Zone, ZoneCounter
 
 log = logging.getLogger(__name__)
@@ -41,6 +44,8 @@ COLOURS = {  # BGR
     "car": (230, 120, 40),
     "bus": (60, 60, 230),
     "truck": (180, 80, 180),
+    "tricycle": (0, 180, 180),
+    "cart": (60, 100, 140),
 }
 
 DETECTION_FIELDS = [
@@ -76,18 +81,20 @@ class RunConfig:
     zones: dict[str, list[list[float]]] | None = None  # name -> polygon, fractions of the frame
     zone_min_frames: int = 2  # frames inside a zone before an object counts as using it
     start_clock: str | None = None  # clock time of the first frame, ISO, e.g. 2026-11-07T07:00:00
+    extra_lines: dict[str, list[list[float]]] | None = None  # name -> [[x, y], [x, y]], fractions
+    context: str | None = None  # context profile: name in contexts/ or path to a YAML file
 
 
 def drop_riders(boxes: list[dict], min_overlap: float = 0.3) -> list[dict]:
-    """Remove "pedestrian" boxes that are people riding a two-wheeler.
+    """Remove "pedestrian" boxes that are people riding a two-wheeler or a cart.
 
     COCO models detect the rider and the motorbike as two objects. In cities
-    like Dakar, where motorbikes are everywhere, counting riders as pedestrians
-    would inflate pedestrian counts. A person box is dropped when it overlaps a
-    motorcycle or bicycle box by at least ``min_overlap`` of its own area and
-    its feet are inside that box.
+    where motorbikes are everywhere, counting riders as pedestrians would
+    inflate pedestrian counts. A person box is dropped when it overlaps a
+    bicycle, motorcycle, tricycle or cart box by at least ``min_overlap`` of its
+    own area and its feet are inside that box.
     """
-    wheels = [b["xyxy"] for b in boxes if b["road_class"] in ("motorcycle", "bicycle")]
+    wheels = [b["xyxy"] for b in boxes if b["road_class"] in RIDDEN_CLASSES]
     if not wheels:
         return boxes
     kept = []
@@ -119,7 +126,8 @@ class FrameResult:
 
 def _draw(frame: np.ndarray, boxes: list[dict], line: CountingLine,
           totals: dict[str, dict[str, int]], directions: tuple[str, str], t: float,
-          zones: ZoneCounter | None = None) -> np.ndarray:
+          zones: ZoneCounter | None = None,
+          extra_lines: list[CountingLine] | None = None) -> np.ndarray:
     out = frame.copy()
     h, w = out.shape[:2]
     scale = max(0.5, w / 1600)
@@ -136,6 +144,12 @@ def _draw(frame: np.ndarray, boxes: list[dict], line: CountingLine,
     a = tuple(int(v) for v in line.a)
     b = tuple(int(v) for v in line.b)
     cv2.line(out, a, b, (0, 230, 255), max(2, int(3 * scale)))
+    for ln in extra_lines or []:
+        ea = tuple(int(v) for v in ln.a)
+        eb = tuple(int(v) for v in ln.b)
+        cv2.line(out, ea, eb, (255, 200, 0), max(2, int(3 * scale)))
+        cv2.putText(out, ln.name, (ea[0] + 4, ea[1] - 6), cv2.FONT_HERSHEY_SIMPLEX,
+                    0.55 * scale, (255, 200, 0), 2, cv2.LINE_AA)
 
     for bx in boxes:
         c = COLOURS.get(bx.get("track_class", bx["road_class"]), (255, 255, 255))
@@ -181,7 +195,8 @@ def iter_run(cfg: RunConfig, model=None) -> Iterator[FrameResult]:
     from ultralytics import YOLO  # imported here so that tests do not need torch
 
     model = model or YOLO(cfg.model)
-    ids = model_class_ids(model.names, set(cfg.classes))
+    ids = model_class_ids(model.names, set(cfg.classes),
+                          context_aliases(load_context(cfg.context)))
     if not ids:
         raise ValueError("The model has none of the selected classes.")
 
@@ -198,6 +213,9 @@ def iter_run(cfg: RunConfig, model=None) -> Iterator[FrameResult]:
     line = CountingLine.from_relative(cfg.line[0], cfg.line[1], w, h, name="line_1",
                                       margin_frac=cfg.line_margin,
                                       directions=tuple(cfg.line_directions))
+    extra_lines = [CountingLine.from_relative(tuple(pts[0]), tuple(pts[1]), w, h, name=name,
+                                              margin_frac=cfg.line_margin)
+                   for name, pts in (cfg.extra_lines or {}).items()]
     zone_counter = None
     if cfg.zones:
         zone_counter = ZoneCounter([Zone.from_relative(name, [tuple(p) for p in pts], w, h)
@@ -286,11 +304,12 @@ def iter_run(cfg: RunConfig, model=None) -> Iterator[FrameResult]:
                     "anchor_x": round(anchor[0], 1), "anchor_y": round(anchor[1], 1),
                     "speed_px_s": speed,
                 })
-                ev = line.update(tid, road, anchor, frame_index, t)
-                if ev:
-                    cross_w.writerow({"scene_id": cfg.scene_id, "video": video_name,
-                                      "line": line.name, **asdict(ev),
-                                      "clock_time": clock(ev.video_time_s)})
+                for ln in (line, *extra_lines):
+                    ev = ln.update(tid, road, anchor, frame_index, t)
+                    if ev:
+                        cross_w.writerow({"scene_id": cfg.scene_id, "video": video_name,
+                                          "line": ln.name, **asdict(ev),
+                                          "clock_time": clock(ev.video_time_s)})
                 if zone_counter is not None:
                     for zev in zone_counter.update(tid, road, anchor, frame_index, t):
                         zone_w.writerow({"scene_id": cfg.scene_id, "video": video_name,
@@ -298,7 +317,7 @@ def iter_run(cfg: RunConfig, model=None) -> Iterator[FrameResult]:
             if not boxes:
                 empty_frames += 1
             totals = line.totals()
-            img = _draw(frame, boxes, line, totals, line.directions, t, zone_counter)
+            img = _draw(frame, boxes, line, totals, line.directions, t, zone_counter, extra_lines)
             if writer is not None:
                 writer.write(img)
             if processed % 100 == 0:
@@ -323,6 +342,7 @@ def iter_run(cfg: RunConfig, model=None) -> Iterator[FrameResult]:
         "frames_without_selected_objects": empty_frames,
         "unique_tracks_seen": {k: len(v) for k, v in sorted(seen_tracks.items())},
         "line_crossings": line.totals(),
+        "extra_line_crossings": {ln.name: ln.totals() for ln in extra_lines},
         "zone_use": zone_counter.totals() if zone_counter is not None else {},
         "processing_seconds": round(time.time() - t0, 1),
         "author": "Traffic Vision Senegal, Princilia DACI",

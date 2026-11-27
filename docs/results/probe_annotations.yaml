@@ -1,0 +1,41 @@
+# Reference boxes for scripts/probe_open_vocabulary.py, drawn by hand on the
+# 800 x 600 photos of docs/img (credits in docs/img/CREDITS.md).
+#
+# Boxes are [x1, y1, x2, y2] in pixels. `local` is the vehicle as a person in
+# Dakar would name it, `core` the class the tool should count it in. Only the
+# clearly visible vehicles are listed; small or hidden ones are left out, so
+# this measures labels, not recall.
+
+images:
+  - file: docs/img/dakar_car_rapide_hlm.jpg
+    vehicles:
+      - {local: car rapide, core: bus, box: [255, 180, 545, 470]}
+      - {local: city bus, core: bus, box: [160, 215, 272, 290]}
+      - {local: taxi, core: car, box: [208, 263, 268, 335]}
+      - {local: taxi, core: car, box: [590, 285, 715, 378]}
+      - {local: private car, core: car, box: [705, 245, 800, 425]}
+      - {local: scooter, core: motorcycle, box: [555, 310, 665, 386]}
+  - file: docs/img/dakar_traffic.jpg
+    vehicles:
+      - {local: city bus, core: bus, box: [0, 110, 212, 352]}
+      - {local: car rapide, core: bus, box: [545, 85, 800, 292]}
+      - {local: truck, core: truck, box: [360, 150, 548, 278]}
+      - {local: taxi, core: car, box: [220, 250, 482, 492]}
+      - {local: taxi, core: car, box: [205, 255, 800, 600]}
+      - {local: taxi, core: car, box: [0, 400, 196, 592]}
+  - file: docs/img/dakar_brt_grand_dakar.jpg
+    vehicles:
+      - {local: BRT bus, core: bus, box: [486, 357, 516, 396]}
+  - file: docs/img/dakar_ter.jpg
+    vehicles:
+      - {local: TER train, core: none, box: [225, 245, 690, 500]}
+
+# One-shot visual prompt: exemplar boxes taken from the first photo, then
+# applied to the second photo, which the prompt has never seen.
+visual_prompt:
+  reference: docs/img/dakar_car_rapide_hlm.jpg
+  classes:
+    - {name: car rapide, box: [255, 180, 545, 470]}
+    - {name: city bus, box: [160, 215, 272, 290]}
+    - {name: taxi, box: [590, 285, 715, 378]}
+  targets: [docs/img/dakar_traffic.jpg]

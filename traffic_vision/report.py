@@ -12,7 +12,15 @@ import matplotlib.pyplot as plt  # noqa: E402
 import pandas as pd  # noqa: E402
 
 from .analysis import exposure_per_hour, flows, load_crossings, modal_shares, pce_flow  # noqa: E402
-from .taxonomy import ROAD_CLASSES  # noqa: E402
+from .taxonomy import ROAD_CLASSES, load_context  # noqa: E402
+
+
+def context_pce(summary: dict) -> dict[str, float]:
+    """PCE weights of the run's context profile, if it sets any."""
+    try:
+        return dict(load_context(summary.get("config", {}).get("context")).get("pce") or {})
+    except FileNotFoundError:
+        return {}
 
 CLASS_COLOURS = {
     "pedestrian": "#3f9e4d", "bicycle": "#b8a531", "motorcycle": "#e8862a",
@@ -49,7 +57,7 @@ def make_report(run_dir: str | Path, interval_s: float = 10.0) -> Path:
     totals = cx.groupby(["road_class", "direction"]).size().unstack(fill_value=0)
     totals = totals.reindex([c for c in ROAD_CLASSES if c in totals.index])
     shares = modal_shares(cx)
-    pce = pce_flow(cx, 60.0, duration)
+    pce = pce_flow(cx, 60.0, duration, pce=context_pce(summary))
     per_min = len(cx[cx.road_class != "pedestrian"]) / max(duration / 60, 1e-9)
 
     lines = [
@@ -96,4 +104,5 @@ def make_report(run_dir: str | Path, interval_s: float = 10.0) -> Path:
 
 def _flows_for(run_dir: Path, interval_s: float) -> pd.DataFrame:
     summary = json.loads((run_dir / "summary.json").read_text())
-    return pce_flow(load_crossings([run_dir]), interval_s, summary["video"]["duration_s"])
+    return pce_flow(load_crossings([run_dir]), interval_s, summary["video"]["duration_s"],
+                    pce=context_pce(summary))

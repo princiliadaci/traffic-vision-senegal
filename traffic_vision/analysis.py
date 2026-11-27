@@ -1,14 +1,19 @@
 """Turn line crossings into traffic indicators and compare two periods.
 
 The question behind this module: did a measure (a reserved lane, a road
-closure, a shuttle service during the Dakar 2026 Youth Olympic Games) change
-traffic at a given point? To answer it, film the same place, at the same time
-of day, before and during the measure, then compare:
+closure, a ban, a new bus service) change traffic at a given point? To answer
+it, film the same place, at the same time of day, before and during the
+measure, then compare:
 
 - flow per interval (vehicles per minute, by class and direction);
 - flow in passenger car equivalents (PCE), so that a bus weighs more than a car;
 - the share of public transport (buses) and two-wheelers in the flow;
-- the difference between periods, with a bootstrap confidence interval.
+- the difference between periods, with a bootstrap confidence interval;
+- turning movements, when a junction has one counting line per arm.
+
+A comparison of one site before and during a measure mixes the measure with
+everything else that changed; :mod:`traffic_vision.evaluation` adds a control
+site and corrects the detector's errors.
 """
 
 from __future__ import annotations
@@ -25,6 +30,8 @@ DEFAULT_PCE = {
     "pedestrian": 0.0,
     "bicycle": 0.3,
     "motorcycle": 0.5,
+    "tricycle": 0.75,
+    "cart": 1.0,
     "car": 1.0,
     "bus": 2.5,
     "truck": 2.5,
@@ -168,3 +175,25 @@ def aggregate_runs(run_dirs: list[str | Path]) -> tuple[pd.DataFrame, pd.DataFra
         rows.append(row)
     table = pd.DataFrame(rows).fillna(0)
     return pd.concat(frames, ignore_index=True), table
+
+
+def movements(crossings: pd.DataFrame) -> pd.DataFrame:
+    """Turn line crossings into movements, one row per track.
+
+    With several counting lines (one per arm of a junction), the movement of
+    a vehicle is the line where it was first counted and the line where it was
+    last counted, written "A>B". Vehicles counted on a single line get "A".
+    This is how turning movements are counted (as in track 1 of the AI City
+    Challenge), and how a turn ban is checked.
+    """
+    if crossings.empty:
+        return pd.DataFrame(columns=["track_id", "road_class", "movement", "video_time_s"])
+    rows = []
+    for tid, g in crossings.sort_values("video_time_s").groupby("track_id"):
+        first, last = g.iloc[0], g.iloc[-1]
+        move = first["line"] if first["line"] == last["line"] else f"{first['line']}>{last['line']}"
+        rows.append({"track_id": tid, "road_class": g["road_class"].mode().iloc[0],
+                     "movement": move, "video_time_s": float(last["video_time_s"]),
+                     "clock_time": last.get("clock_time", "")})
+    return pd.DataFrame(rows)
+

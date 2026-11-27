@@ -86,7 +86,7 @@ def test_ban_check_reads_clock_time_column():
 
 
 def test_registry_of_games_measures_is_valid():
-    reg = load_registry(Path(__file__).resolve().parent.parent / "configs" / "joj_measures.yaml")
+    reg = load_registry(Path(__file__).resolve().parent.parent / "measures" / "dakar_joj_2026.yaml")
     assert len(reg) >= 10
     kinds = {m.kind for m in reg.values()}
     assert kinds == {"reserved_lane", "class_ban", "closure"}

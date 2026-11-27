@@ -1,0 +1,36 @@
+# Context profile: Lagos (Nigeria). Illustrative: vehicle names and detection
+# notes should be checked with local partners before a study.
+
+name: lagos
+country: Nigeria
+languages: [English, Yoruba]
+
+local_vehicle_types:
+  - name: danfo
+    core_class: bus
+    description: Yellow minibus of the informal network
+    model_labels: [minibus]
+  - name: BRT buses
+    core_class: bus
+    model_labels: [tour bus, school bus]
+  - name: keke (keke napep)
+    core_class: tricycle
+    description: Motorised three-wheeler taxi
+    model_labels: [tricycle, rickshaw, auto rickshaw]
+  - name: okada
+    core_class: motorcycle
+    description: Commercial motorbike taxi; looks like a private motorbike
+    model_labels: [moped, scooter]
+  - name: taxi
+    core_class: car
+    model_labels: [taxi]
+
+pce: {}
+
+legal:
+  data_protection: Nigeria Data Protection Act 2023
+  authority: Nigeria Data Protection Commission (NDPC)
+  transport_authority: Lagos Metropolitan Area Transport Authority (LAMATA)
+
+registries:
+  - measures/lagos_okada_ban.yaml

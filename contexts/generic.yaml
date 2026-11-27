@@ -1,0 +1,24 @@
+# Context profile: start here for a new city. Copy, rename, fill in.
+
+name: generic
+country: ""
+languages: []
+
+# Local vehicle types that matter for your measures. `core_class` is one of:
+# pedestrian, bicycle, motorcycle, tricycle, car, bus, truck, cart.
+# `model_labels` are labels of a detection model (for example of the YOLOE
+# prompt-free vocabulary) that should be counted in that class.
+local_vehicle_types: []
+
+# Extra label -> class pairs, for labels not tied to a local vehicle type.
+extra_aliases: {}
+
+# Passenger car equivalents used by your traffic authority (empty = defaults).
+pce: {}
+
+legal:
+  data_protection: ""
+  authority: ""
+  transport_authority: ""
+
+registries: []

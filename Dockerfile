@@ -11,6 +11,8 @@ COPY pyproject.toml README.md ./
 COPY traffic_vision ./traffic_vision
 COPY app ./app
 COPY configs ./configs
+COPY measures ./measures
+COPY contexts ./contexts
 RUN pip install --no-cache-dir ".[dashboard]"
 
 EXPOSE 8501

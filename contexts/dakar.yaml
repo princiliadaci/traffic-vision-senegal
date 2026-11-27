@@ -1,0 +1,65 @@
+# Context profile: Dakar and the Petite-Cote (Senegal).
+#
+# A profile says which local vehicle types exist, which core class each one is
+# counted in, which labels of detection models may catch it, and what is known
+# about how well they are detected. Run with `--context dakar`.
+
+name: dakar
+country: Senegal
+languages: [French, Wolof]
+
+local_vehicle_types:
+  - name: car rapide
+    core_class: bus
+    description: Painted minibus, rear entrance, apprentice on the back step
+    model_labels: [minibus]
+    detection_notes: >
+      On two test photos, a COCO model labelled it "truck" and the YOLOE
+      prompt-free model "trailer truck"; a one-shot visual prompt missed it on
+      an unseen photo and gave its name to a city bus
+      (docs/results/open_vocabulary_probe.md). Under a truck ban, count it
+      with hand-counted windows (traffic-vision did --labels).
+  - name: Ndiaga Ndiaye
+    core_class: bus
+    description: White long-distance and suburban minibus with a roof rack
+    model_labels: [minibus]
+  - name: Tata (AFTU minibus)
+    core_class: bus
+    description: Minibuses of the AFTU operators on fixed lines
+    model_labels: [minibus, tour bus]
+  - name: Dakar Dem Dikk and BRT buses
+    core_class: bus
+    model_labels: [tour bus, school bus]
+  - name: taxi
+    core_class: car
+    description: Yellow and black city taxis; clandos (informal taxis) look like private cars
+    model_labels: [taxi]
+  - name: jakarta
+    core_class: motorcycle
+    description: Motorbike taxi; delivery motorbikes are common too
+    model_labels: [moped, scooter]
+  - name: tricycle
+    core_class: tricycle
+    description: Motorised tricycles for goods and passengers outside the centre
+    model_labels: [tricycle, rickshaw]
+  - name: charrette
+    core_class: cart
+    description: Horse-drawn cart
+    model_labels: [horse cart, wagon]
+  - name: pousse-pousse
+    core_class: cart
+    description: Handcart pushed by a person
+    model_labels: [cart, handcart]
+
+# Passenger car equivalents: leave empty to use the illustrative defaults of
+# traffic_vision/analysis.py, or set the values used by CETUD.
+pce: {}
+
+legal:
+  data_protection: Law no. 2008-12 of 25 January 2008 on the protection of personal data
+  authority: Commission de protection des donnees personnelles (CDP)
+  transport_authority: CETUD (Conseil executif des transports urbains durables)
+
+registries:
+  - measures/dakar_joj_2026.yaml
+  - measures/dakar_brt_corridor.yaml

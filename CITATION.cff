@@ -1,18 +1,22 @@
 cff-version: 1.2.0
 message: "If you use this software, please cite it as below."
-title: "Traffic Vision Senegal: measuring the effect of mobility measures from video, with the Dakar 2026 Youth Olympic Games as case study"
+title: "Traffic Vision Senegal: measuring urban mobility policies from video, with honest uncertainty"
 abstract: >
-  Open-source pipeline that counts road users from existing video (YOLO11 and
-  ByteTrack), checks traffic rules (reserved lanes, bans by the hour) and
-  estimates the effect of a measure by difference-in-differences, with counts
-  corrected by a manual sample and intervals that account for autocorrelated
-  traffic. Includes a registry of the mobility measures of the Dakar 2026
-  Youth Olympic Games and a simulation study of the estimator.
+  Open-source framework that turns existing traffic video into evidence on
+  mobility rules in African cities. Rules are described in measure registries
+  (reserved lanes, bans on a class, banned movements, service frequencies,
+  closures) and local vehicles in context profiles; any Ultralytics detector,
+  closed or open vocabulary, counts road users with ByteTrack; the effect of
+  a rule is estimated by a prediction-powered difference-in-differences that
+  corrects the network's errors with a few hand-counted windows per
+  recording and accounts for autocorrelated traffic. Worked example: the
+  Dakar 2026 Youth Olympic Games; registries for the Dakar BRT corridor, the
+  Lagos okada ban and the Kigali car-free days.
 authors:
   - family-names: "DACI"
     given-names: "Princilia"
     affiliation: "African Institute for Mathematical Sciences (AIMS) Senegal"
-version: 0.2.0
+version: 0.3.0
 date-released: 2026-11-27
 license: MIT
 repository-code: "https://github.com/princiliadaci/traffic-vision-senegal"
@@ -21,6 +25,8 @@ keywords:
   - traffic counting
   - policy evaluation
   - difference-in-differences
+  - prediction-powered inference
+  - open-vocabulary detection
   - Dakar 2026 Youth Olympic Games
   - urban mobility
   - Senegal

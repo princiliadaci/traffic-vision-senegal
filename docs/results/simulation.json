@@ -1,190 +1,420 @@
 {
-  "settings": {
-    "recording_hours": [
-      2,
-      6
-    ],
-    "interval_minutes": 5,
-    "base_treated": 60.0,
-    "base_control": 50.0,
-    "city_shock": 6.0,
-    "true_effect": 12.0,
-    "recall": 0.82,
-    "false_positives_per_interval": 1.0,
-    "sigma": 0.15,
-    "manual_intervals": 8,
-    "studies": 1000,
-    "bootstrap_resamples": 999,
-    "seed": 2026
-  },
-  "results": {
+  "experiment_a": {
     "2-hour recordings, autocorrelated traffic (rho = 0.6)": {
-      "E1": {
-        "mean_estimate": 14.783291666666669,
-        "bias": 2.7832916666666687,
-        "rmse": 6.838143251278083,
-        "coverage": 0.695,
-        "mean_ci_width": 13.786379166666665,
-        "detects_effect": 0.898
+      "before_after": {
+        "mean_estimate": 14.77525,
+        "bias": 2.7752499999999998,
+        "rmse": 6.941029632634564,
+        "coverage": 0.679,
+        "mean_ci_width": 13.839506249999998,
+        "detects_effect": 0.901
       },
-      "E2": {
-        "mean_estimate": 10.061291666666667,
-        "bias": -1.9387083333333326,
-        "rmse": 8.204047421682924,
-        "coverage": 0.703,
-        "mean_ci_width": 17.758324999999992,
-        "detects_effect": 0.565
+      "did_raw": {
+        "mean_estimate": 9.801791666666668,
+        "bias": -2.1982083333333318,
+        "rmse": 8.522667793563494,
+        "coverage": 0.907,
+        "mean_ci_width": 31.118776460122916,
+        "detects_effect": 0.247
       },
-      "E3": {
-        "mean_estimate": 12.039842025680223,
-        "bias": 0.03984202568022255,
-        "rmse": 9.548082151198336,
-        "coverage": 0.731,
-        "mean_ci_width": 21.309268464317665,
-        "detects_effect": 0.565
+      "did_ratio_iid": {
+        "mean_estimate": 11.71549136079367,
+        "bias": -0.2845086392063294,
+        "rmse": 9.851072127337225,
+        "coverage": 0.714,
+        "mean_ci_width": 21.461908614102995,
+        "detects_effect": 0.545
       },
-      "E4": {
-        "mean_estimate": 12.039842025680223,
-        "bias": 0.03984202568022255,
-        "rmse": 9.548082151198336,
-        "coverage": 0.814,
-        "mean_ci_width": 25.481374103678906,
-        "detects_effect": 0.475
+      "did_ratio_block": {
+        "mean_estimate": 11.71549136079367,
+        "bias": -0.2845086392063294,
+        "rmse": 9.851072127337225,
+        "coverage": 0.794,
+        "mean_ci_width": 25.77467941408181,
+        "detects_effect": 0.465
       },
-      "E5": {
-        "mean_estimate": 12.039842025680223,
-        "bias": 0.03984202568022255,
-        "rmse": 9.548082151198336,
-        "coverage": 0.927,
-        "mean_ci_width": 37.18061697223185,
-        "detects_effect": 0.266
+      "did_ratio_batch": {
+        "mean_estimate": 11.71549136079367,
+        "bias": -0.2845086392063294,
+        "rmse": 9.851072127337225,
+        "coverage": 0.917,
+        "mean_ci_width": 37.25721028840489,
+        "detects_effect": 0.246
       }
     },
     "6-hour recordings, autocorrelated traffic (rho = 0.6)": {
-      "E1": {
-        "mean_estimate": 14.817972222222222,
-        "bias": 2.817972222222222,
-        "rmse": 4.74455039889496,
-        "coverage": 0.606,
-        "mean_ci_width": 8.39949861111111,
-        "detects_effect": 0.997
+      "before_after": {
+        "mean_estimate": 14.559097222222222,
+        "bias": 2.5590972222222224,
+        "rmse": 4.557978585796587,
+        "coverage": 0.634,
+        "mean_ci_width": 8.359622916666666,
+        "detects_effect": 0.995
       },
-      "E2": {
-        "mean_estimate": 10.04513888888889,
-        "bias": -1.9548611111111107,
-        "rmse": 5.248416832133969,
-        "coverage": 0.703,
-        "mean_ci_width": 10.78668333333333,
-        "detects_effect": 0.826
+      "did_raw": {
+        "mean_estimate": 9.693805555555556,
+        "bias": -2.3061944444444435,
+        "rmse": 5.283184438257099,
+        "coverage": 0.928,
+        "mean_ci_width": 20.45750785116401,
+        "detects_effect": 0.453
       },
-      "E3": {
-        "mean_estimate": 12.008477410863373,
-        "bias": 0.008477410863372725,
-        "rmse": 5.8373205795197345,
-        "coverage": 0.726,
-        "mean_ci_width": 12.956639970231036,
-        "detects_effect": 0.826
+      "did_ratio_iid": {
+        "mean_estimate": 11.581937589267774,
+        "bias": -0.41806241073222594,
+        "rmse": 5.702852975544457,
+        "coverage": 0.747,
+        "mean_ci_width": 12.878568114876904,
+        "detects_effect": 0.823
       },
-      "E4": {
-        "mean_estimate": 12.008477410863373,
-        "bias": 0.008477410863372725,
-        "rmse": 5.8373205795197345,
-        "coverage": 0.852,
-        "mean_ci_width": 17.12826429805738,
-        "detects_effect": 0.744
+      "did_ratio_block": {
+        "mean_estimate": 11.581937589267774,
+        "bias": -0.41806241073222594,
+        "rmse": 5.702852975544457,
+        "coverage": 0.863,
+        "mean_ci_width": 17.04230729795427,
+        "detects_effect": 0.706
       },
-      "E5": {
-        "mean_estimate": 12.008477410863373,
-        "bias": 0.008477410863372725,
-        "rmse": 5.8373205795197345,
-        "coverage": 0.94,
-        "mean_ci_width": 24.555902912797865,
-        "detects_effect": 0.49
+      "did_ratio_batch": {
+        "mean_estimate": 11.581937589267774,
+        "bias": -0.41806241073222594,
+        "rmse": 5.702852975544457,
+        "coverage": 0.943,
+        "mean_ci_width": 24.468097197292767,
+        "detects_effect": 0.452
       }
     },
     "2-hour recordings, independent intervals (rho = 0)": {
-      "E1": {
-        "mean_estimate": 14.818333333333333,
-        "bias": 2.8183333333333334,
-        "rmse": 4.24328472739902,
-        "coverage": 0.861,
-        "mean_ci_width": 12.589441666666664,
-        "detects_effect": 0.996
+      "before_after": {
+        "mean_estimate": 14.83275,
+        "bias": 2.8327500000000008,
+        "rmse": 4.444323783084316,
+        "coverage": 0.825,
+        "mean_ci_width": 12.502281249999998,
+        "detects_effect": 0.991
       },
-      "E2": {
-        "mean_estimate": 9.817,
-        "bias": -2.183,
-        "rmse": 4.708319321513074,
-        "coverage": 0.93,
-        "mean_ci_width": 16.314599999999995,
-        "detects_effect": 0.652
+      "did_raw": {
+        "mean_estimate": 9.927916666666668,
+        "bias": -2.0720833333333317,
+        "rmse": 4.734290909594241,
+        "coverage": 0.941,
+        "mean_ci_width": 19.325220415875382,
+        "detects_effect": 0.522
       },
-      "E3": {
-        "mean_estimate": 11.737701084701769,
-        "bias": -0.26229891529823135,
-        "rmse": 5.007371991358739,
-        "coverage": 0.944,
-        "mean_ci_width": 19.541504386173568,
-        "detects_effect": 0.652
+      "did_ratio_iid": {
+        "mean_estimate": 11.898772305545833,
+        "bias": -0.1012276944541668,
+        "rmse": 5.137930865519141,
+        "coverage": 0.94,
+        "mean_ci_width": 19.518326257416764,
+        "detects_effect": 0.671
       },
-      "E4": {
-        "mean_estimate": 11.737701084701769,
-        "bias": -0.26229891529823135,
-        "rmse": 5.007371991358739,
-        "coverage": 0.929,
-        "mean_ci_width": 18.699053625673915,
-        "detects_effect": 0.684
+      "did_ratio_block": {
+        "mean_estimate": 11.898772305545833,
+        "bias": -0.1012276944541668,
+        "rmse": 5.137930865519141,
+        "coverage": 0.919,
+        "mean_ci_width": 18.575989404405398,
+        "detects_effect": 0.694
       },
-      "E5": {
-        "mean_estimate": 11.737701084701769,
-        "bias": -0.26229891529823135,
-        "rmse": 5.007371991358739,
-        "coverage": 0.961,
-        "mean_ci_width": 23.428314653093242,
-        "detects_effect": 0.493
+      "did_ratio_batch": {
+        "mean_estimate": 11.898772305545833,
+        "bias": -0.1012276944541668,
+        "rmse": 5.137930865519141,
+        "coverage": 0.956,
+        "mean_ci_width": 23.178045385266874,
+        "detects_effect": 0.517
       }
     },
     "6-hour recordings, independent intervals (rho = 0)": {
-      "E1": {
-        "mean_estimate": 14.73763888888889,
-        "bias": 2.73763888888889,
-        "rmse": 3.3477297333094187,
-        "coverage": 0.702,
-        "mean_ci_width": 7.383715972222221,
+      "before_after": {
+        "mean_estimate": 14.750541666666667,
+        "bias": 2.750541666666667,
+        "rmse": 3.349139348399824,
+        "coverage": 0.686,
+        "mean_ci_width": 7.38940486111111,
         "detects_effect": 1.0
       },
-      "E2": {
-        "mean_estimate": 9.808194444444446,
-        "bias": -2.191805555555554,
-        "rmse": 3.296316453329963,
-        "coverage": 0.84,
-        "mean_ci_width": 9.55177222222222,
-        "detects_effect": 0.974
+      "did_raw": {
+        "mean_estimate": 9.866833333333332,
+        "bias": -2.1331666666666678,
+        "rmse": 3.2341281478233372,
+        "coverage": 0.888,
+        "mean_ci_width": 11.043573769264782,
+        "detects_effect": 0.95
       },
-      "E3": {
-        "mean_estimate": 11.737524251076708,
-        "bias": -0.2624757489232916,
-        "rmse": 2.9890598316782713,
-        "coverage": 0.941,
-        "mean_ci_width": 11.472992792897466,
-        "detects_effect": 0.974
+      "did_ratio_iid": {
+        "mean_estimate": 11.772590793690553,
+        "bias": -0.2274092063094475,
+        "rmse": 2.931244164695102,
+        "coverage": 0.952,
+        "mean_ci_width": 11.439643346979617,
+        "detects_effect": 0.982
       },
-      "E4": {
-        "mean_estimate": 11.737524251076708,
-        "bias": -0.2624757489232916,
-        "rmse": 2.9890598316782713,
-        "coverage": 0.933,
-        "mean_ci_width": 11.217188997645637,
+      "did_ratio_block": {
+        "mean_estimate": 11.772590793690553,
+        "bias": -0.2274092063094475,
+        "rmse": 2.931244164695102,
+        "coverage": 0.934,
+        "mean_ci_width": 11.135704198350318,
         "detects_effect": 0.981
       },
-      "E5": {
-        "mean_estimate": 11.737524251076708,
-        "bias": -0.2624757489232916,
-        "rmse": 2.9890598316782713,
-        "coverage": 0.953,
-        "mean_ci_width": 13.240345273033752,
-        "detects_effect": 0.938
+      "did_ratio_batch": {
+        "mean_estimate": 11.772590793690553,
+        "bias": -0.2274092063094475,
+        "rmse": 2.931244164695102,
+        "coverage": 0.949,
+        "mean_ci_width": 13.231115948899305,
+        "detects_effect": 0.95
       }
+    }
+  },
+  "experiment_b": {
+    "same detection everywhere (82%)": {
+      "did_raw": {
+        "mean_estimate": 9.774263888888889,
+        "bias": -2.225736111111111,
+        "rmse": 5.14817439999635,
+        "coverage": 0.924,
+        "mean_ci_width": 20.298291431615823,
+        "detects_effect": 0.47
+      },
+      "did_ratio_batch": {
+        "mean_estimate": 11.66751694101097,
+        "bias": -0.3324830589890304,
+        "rmse": 5.538218080113406,
+        "coverage": 0.948,
+        "mean_ci_width": 24.276317456189,
+        "detects_effect": 0.467
+      },
+      "did_ppi": {
+        "mean_estimate": 12.061763888888889,
+        "bias": 0.06176388888888873,
+        "rmse": 6.494227538317737,
+        "coverage": 0.921,
+        "mean_ci_width": 23.35775617764131,
+        "detects_effect": 0.518
+      },
+      "did_ppi_ratio": {
+        "mean_estimate": 11.994285034371275,
+        "bias": -0.005714965628724755,
+        "rmse": 6.340014186171419,
+        "coverage": 0.957,
+        "mean_ci_width": 26.443119041206216,
+        "detects_effect": 0.429
+      },
+      "did_ppi_tuned": {
+        "mean_estimate": 11.806583350570149,
+        "bias": -0.19341664942985126,
+        "rmse": 8.812119471166069,
+        "coverage": 0.942,
+        "mean_ci_width": 38.745886127199256,
+        "detects_effect": 0.306
+      }
+    },
+    "detection 82% before, 70% during, 75% on the control camera": {
+      "did_raw": {
+        "mean_estimate": 0.6693194444444444,
+        "bias": -11.330680555555556,
+        "rmse": 12.124447844434295,
+        "coverage": 0.346,
+        "mean_ci_width": 18.922199164277767,
+        "detects_effect": 0.045
+      },
+      "did_ratio_batch": {
+        "mean_estimate": 0.7956654327913959,
+        "bias": -11.204334567208605,
+        "rmse": 12.33970500838594,
+        "coverage": 0.508,
+        "mean_ci_width": 22.65382768319572,
+        "detects_effect": 0.045
+      },
+      "did_ppi": {
+        "mean_estimate": 11.475152777777778,
+        "bias": -0.5248472222222222,
+        "rmse": 6.724284649754643,
+        "coverage": 0.911,
+        "mean_ci_width": 24.231288105292386,
+        "detects_effect": 0.459
+      },
+      "did_ppi_ratio": {
+        "mean_estimate": 11.813013901598598,
+        "bias": -0.1869860984014018,
+        "rmse": 6.804355750069271,
+        "coverage": 0.943,
+        "mean_ci_width": 28.153118526540812,
+        "detects_effect": 0.373
+      },
+      "did_ppi_tuned": {
+        "mean_estimate": 11.30179867444318,
+        "bias": -0.6982013255568198,
+        "rmse": 8.821428943246072,
+        "coverage": 0.924,
+        "mean_ci_width": 37.63819016910451,
+        "detects_effect": 0.296
+      }
+    }
+  },
+  "experiment_c": {
+    "0% of car rapides labelled truck, 6 intervals counted by hand": {
+      "network": {
+        "mean_per_hour": 11.4245,
+        "true_per_hour": 12.0,
+        "coverage": 0.928,
+        "mean_ci_width_per_hour": 6.878633266956995
+      },
+      "ppi": {
+        "mean_per_hour": 12.058499999999999,
+        "true_per_hour": 12.0,
+        "coverage": 0.968,
+        "mean_ci_width_per_hour": 14.123571836528523
+      },
+      "ppi_ratio": {
+        "mean_per_hour": 12.42736699272949,
+        "true_per_hour": 12.0,
+        "coverage": 0.932,
+        "mean_ci_width_per_hour": 15.000739262607338
+      }
+    },
+    "25% of car rapides labelled truck, 6 intervals counted by hand": {
+      "network": {
+        "mean_per_hour": 35.53275,
+        "true_per_hour": 12.0,
+        "coverage": 0.0,
+        "mean_ci_width_per_hour": 11.933592580926296
+      },
+      "ppi": {
+        "mean_per_hour": 12.274750000000001,
+        "true_per_hour": 12.0,
+        "coverage": 0.966,
+        "mean_ci_width_per_hour": 37.905853824265954
+      },
+      "ppi_ratio": {
+        "mean_per_hour": 12.123056273950322,
+        "true_per_hour": 12.0,
+        "coverage": 0.922,
+        "mean_ci_width_per_hour": 20.38459581194747
+      }
+    },
+    "50% of car rapides labelled truck, 6 intervals counted by hand": {
+      "network": {
+        "mean_per_hour": 59.55850000000001,
+        "true_per_hour": 12.0,
+        "coverage": 0.0,
+        "mean_ci_width_per_hour": 15.374404327201292
+      },
+      "ppi": {
+        "mean_per_hour": 12.342499999999998,
+        "true_per_hour": 12.0,
+        "coverage": 0.964,
+        "mean_ci_width_per_hour": 53.698818213248934
+      },
+      "ppi_ratio": {
+        "mean_per_hour": 12.02314294944227,
+        "true_per_hour": 12.0,
+        "coverage": 0.916,
+        "mean_ci_width_per_hour": 21.443294021433253
+      }
+    },
+    "50% of car rapides labelled truck, 12 intervals counted by hand": {
+      "network": {
+        "mean_per_hour": 59.528999999999996,
+        "true_per_hour": 12.0,
+        "coverage": 0.0,
+        "mean_ci_width_per_hour": 15.369859142123692
+      },
+      "ppi": {
+        "mean_per_hour": 12.292,
+        "true_per_hour": 12.0,
+        "coverage": 0.982,
+        "mean_ci_width_per_hour": 38.156409896661074
+      },
+      "ppi_ratio": {
+        "mean_per_hour": 12.035732585232651,
+        "true_per_hour": 12.0,
+        "coverage": 0.919,
+        "mean_ci_width_per_hour": 13.91647676192645
+      }
+    }
+  },
+  "design_example": [
+    {
+      "days": 1,
+      "hours_per_day": 2,
+      "power": 0.22,
+      "coverage": 0.9166666666666666,
+      "ci_half_width": 19.708358322622594
+    },
+    {
+      "days": 1,
+      "hours_per_day": 4,
+      "power": 0.33666666666666667,
+      "coverage": 0.96,
+      "ci_half_width": 15.566081261672394
+    },
+    {
+      "days": 1,
+      "hours_per_day": 8,
+      "power": 0.5633333333333334,
+      "coverage": 0.9566666666666667,
+      "ci_half_width": 11.26361216397363
+    },
+    {
+      "days": 3,
+      "hours_per_day": 2,
+      "power": 0.46,
+      "coverage": 0.9533333333333334,
+      "ci_half_width": 12.999713827433673
+    },
+    {
+      "days": 3,
+      "hours_per_day": 4,
+      "power": 0.7033333333333334,
+      "coverage": 0.95,
+      "ci_half_width": 9.541854474998088
+    },
+    {
+      "days": 3,
+      "hours_per_day": 8,
+      "power": 0.9333333333333333,
+      "coverage": 0.9433333333333334,
+      "ci_half_width": 6.6668116856426485
+    },
+    {
+      "days": 7,
+      "hours_per_day": 2,
+      "power": 0.76,
+      "coverage": 0.97,
+      "ci_half_width": 8.760403989878752
+    },
+    {
+      "days": 7,
+      "hours_per_day": 4,
+      "power": 0.9566666666666667,
+      "coverage": 0.9466666666666667,
+      "ci_half_width": 6.262226664859619
+    },
+    {
+      "days": 7,
+      "hours_per_day": 8,
+      "power": 1.0,
+      "coverage": 0.96,
+      "ci_half_width": 4.564740003959158
+    }
+  ],
+  "settings": {
+    "studies": 1000,
+    "bootstrap_resamples": 999,
+    "seed": 2026,
+    "interval_minutes": 5,
+    "true_effect": 12,
+    "city_shock": 6,
+    "base_treated": 60,
+    "base_control": 50,
+    "false_pos_per_interval": 1,
+    "hand_counted_intervals": {
+      "one_camera": 8,
+      "ppi_per_recording": 6
     }
   }
 }

@@ -17,6 +17,7 @@ def test_coco_ids_are_mapped_by_name_not_by_position():
 def test_bdd_names():
     ids = model_class_ids(BDD)
     assert ids[6] == "motorcycle" and ids[5] == "bicycle" and ids[3] == "bus"
+    assert ids[1] == "pedestrian"  # the rider, removed later by drop_riders
     assert 9 not in ids  # trains are ignored
 
 

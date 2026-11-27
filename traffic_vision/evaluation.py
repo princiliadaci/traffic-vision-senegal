@@ -1,9 +1,9 @@
 """Estimate the effect of a measure from video counts, with honest uncertainty.
 
 Comparing one site before and during a measure mixes two things: the measure
-itself and everything else that changed in the city at the same time. During
-the Dakar 2026 Youth Olympic Games, traffic changed everywhere (visitors,
-shuttles, school calendars, security perimeters). A site that the measure did
+itself and everything else that changed in the city at the same time (during
+the Dakar 2026 Youth Olympic Games: visitors, shuttles, school calendars,
+security perimeters; after a ban: fuel prices, the season, the school year). A site that the measure did
 not touch, filmed over the same periods, gives the counterfactual. This is a
 difference-in-differences (DiD):
 
@@ -23,6 +23,14 @@ Two problems are specific to counts produced by a detector:
    intervals (batch means), whose averages are close to independent, and uses a
    Student t critical value with Welch-Satterthwaite degrees of freedom. A
    moving block bootstrap (Kunsch, 1989) is available as an alternative.
+
+3. **Cameras differ.** A correction factor estimated on one camera does not
+   hold for another camera, another light or a crowd that hides vehicles. With
+   a few hand-counted windows in *each* recording, prediction-powered
+   inference (Angelopoulos et al., 2023; PPI++, Angelopoulos, Duchi and Zrnic,
+   2023) combines the network's counts on every window with the human counts
+   on a few, and gives valid intervals whatever the accuracy of the network
+   (:func:`ppi_mean`, :func:`ppi_diff_in_diff`).
 
 ``scripts/simulate_evaluation.py`` checks by simulation that this estimator
 recovers a known effect and how often its 95% intervals contain the truth.
@@ -281,3 +289,146 @@ def diff_in_diff(treated_before, treated_during, control_before, control_during,
     return DiDResult(float(k * raw), (float(lo), float(hi)), rel, rel_ci, means, "block",
                      f"block bootstrap, blocks of {b} intervals",
                      calibration.factor if calibration else None)
+
+
+# ---------------------------------------------------------------------------
+# Prediction-powered inference
+# ---------------------------------------------------------------------------
+
+def _welch_df(variances: list[float], dfs: list[float]) -> float:
+    num = sum(variances) ** 2
+    den = sum(v ** 2 / d for v, d in zip(variances, dfs) if d > 0)
+    return num / den if den > 0 else float(min(dfs))
+
+
+@dataclass
+class PPIEstimate:
+    mean: float          # estimated mean of the true count per window
+    se: float
+    df: float
+    lam: float           # weight given to the network's counts (1 = plain PPI)
+    n_labeled: int
+    n_windows: int
+    naive_mean: float    # mean of the network's counts alone
+
+
+def ppi_mean(pred_all, pred_labeled, true_labeled, n_batches: int = 4,
+             lam: float | str = "ratio") -> PPIEstimate:
+    """Mean true count per window from network counts and a few human counts.
+
+    ``pred_all`` holds the network's count in every window of a recording;
+    ``pred_labeled`` and ``true_labeled`` the network's and a person's count in
+    a few windows chosen at random. The estimate is
+
+        mean(true_labeled) + lam * (mean(pred_all) - mean(pred_labeled))
+
+    ``lam`` sets how much the network's counts are trusted:
+
+    - ``"ratio"`` (default): ``lam`` is the ratio of human to network counts
+      on the labelled windows, a correction proportional to the count, which
+      fits a detector that misses a share of the vehicles. It is the ratio
+      estimator of survey sampling, written in the PPI form. In the
+      simulation study its intervals kept their 95% coverage when cameras
+      differed (``docs/results/simulation.md``);
+    - ``1``: plain prediction-powered inference (PPI), the network's average
+      corrected by its average error on the labelled windows (slightly
+      narrower intervals, coverage about 91-92% with six labels);
+    - ``"tuned"``: the variance-minimising weight of PPI++, estimated on the
+      labelled windows; unstable with only a few labels.
+
+    The variance of the network's mean uses batch means, because traffic is
+    autocorrelated; the variance of the labelled part treats the windows as a
+    random sample of the recording.
+    """
+    f_all = np.asarray(pred_all, dtype=float)
+    f_l = np.asarray(pred_labeled, dtype=float)
+    y = np.asarray(true_labeled, dtype=float)
+    n, n_all = len(y), len(f_all)
+    if n < 3 or len(f_l) != n:
+        raise ValueError("Need at least three labelled windows, with a network count for each.")
+    m = min(n_batches, n_all)
+    var_f_mean = batch_means(f_all, m).var(ddof=1) / m if m >= 2 else f_all.var(ddof=1) / n_all
+    var_f = f_all.var(ddof=1)
+    if lam == "tuned":
+        cov = float(np.cov(y, f_l, ddof=1)[0, 1])
+        lam = cov / ((1 + n / n_all) * var_f) if var_f > 0 else 0.0
+        lam = float(np.clip(lam, 0.0, 3.0))
+    elif lam == "ratio":
+        lam = float(y.sum() / f_l.sum()) if f_l.sum() > 0 else 0.0
+    else:
+        lam = float(lam)
+    theta = y.mean() + lam * (f_all.mean() - f_l.mean())
+    v_unl = lam ** 2 * var_f_mean
+    v_lab = (y - lam * f_l).var(ddof=1) / n
+    df = _welch_df([v_unl, v_lab], [m - 1, n - 1])
+    return PPIEstimate(float(theta), float(math.sqrt(v_unl + v_lab)), float(df), lam, n, n_all,
+                       float(f_all.mean()))
+
+
+def ppi_diff_in_diff(estimates: list[PPIEstimate]) -> DiDResult:
+    """Difference-in-differences from four prediction-powered means.
+
+    ``estimates`` are, in order: treated before, treated during, control
+    before, control during. Each recording has its own labelled windows, so a
+    camera that sees worse than another, or a crowd that hides vehicles
+    during the measure, does not bias the effect.
+    """
+    if len(estimates) != 4:
+        raise ValueError("Give four estimates: treated before, treated during, control "
+                         "before, control during.")
+    tb, td, cb, cd = (e.mean for e in estimates)
+    effect = (td - tb) - (cd - cb)
+    variances = [e.se ** 2 for e in estimates]
+    df = _welch_df(variances, [e.df for e in estimates])
+    half = t_quantile(0.975, df) * math.sqrt(sum(variances))
+    counterfactual = tb + (cd - cb)
+    rel = effect / counterfactual if counterfactual > 0 else None
+    rel_ci = None
+    if rel is not None:
+        var_c = variances[0] + variances[2] + variances[3]
+        var_rel = (sum(variances) / counterfactual ** 2 + effect ** 2 * var_c / counterfactual ** 4
+                   + 2 * effect * var_c / counterfactual ** 3)
+        h = t_quantile(0.975, df) * math.sqrt(max(var_rel, 0.0))
+        rel_ci = (rel - h, rel + h)
+    lams = ", ".join(f"{e.lam:.2f}" for e in estimates)
+    detail = (f"prediction-powered inference, {sum(e.n_labeled for e in estimates)} labelled "
+              f"windows, weights {lams}, t with {df:.1f} df")
+    return DiDResult(float(effect), (effect - half, effect + half), rel, rel_ci,
+                     {"treated_before": tb, "treated_during": td, "control_before": cb,
+                      "control_during": cd}, "ppi", detail, None)
+
+
+def ppi_from_files(labels_csv: str | Path, run_dirs: list[str | Path],
+                   classes: list[str] | None = None, n_batches: int = 4,
+                   lam: float | str = "ratio") -> list[PPIEstimate]:
+    """Prediction-powered means for several runs from one label file.
+
+    The label file has one row per hand-counted window: ``run, start_s, end_s,
+    manual_count`` (``run`` is the run folder name). All windows of a run must
+    have the same length; the network's counts are computed on consecutive
+    windows of that length over the whole recording.
+    """
+    import json
+
+    labels = pd.read_csv(labels_csv)
+    out = []
+    for rd in run_dirs:
+        rd = Path(rd)
+        lab = labels[labels["run"] == rd.name]
+        if len(lab) < 3:
+            raise ValueError(f"{rd.name}: need at least three labelled windows in {labels_csv}.")
+        lengths = (lab["end_s"] - lab["start_s"]).round(3).unique()
+        if len(lengths) != 1:
+            raise ValueError(f"{rd.name}: labelled windows must all have the same length.")
+        w = float(lengths[0])
+        dur = json.loads((rd / "summary.json").read_text())["video"]["duration_s"]
+        cx = pd.read_csv(rd / "crossings.csv")
+        cx = cx[cx["road_class"] != "pedestrian"] if classes is None else \
+            cx[cx["road_class"].isin(classes)]
+        t = cx["video_time_s"].to_numpy()
+        k = int(dur // w)
+        pred_all = np.histogram(t, bins=np.arange(k + 1) * w)[0]
+        pred_lab = [int(((t >= a) & (t < b)).sum()) for a, b in zip(lab["start_s"], lab["end_s"])]
+        out.append(ppi_mean(pred_all, pred_lab, lab["manual_count"].to_numpy(), n_batches, lam))
+    return out
+

@@ -1,4 +1,4 @@
-"""Timeline of the Games mobility measures, drawn from configs/joj_measures.yaml.
+"""Timeline of the Games mobility measures, drawn from measures/dakar_joj_2026.yaml.
 
     python scripts/plot_measures_timeline.py      # writes docs/img/joj_measures_timeline.png
 """
@@ -45,7 +45,7 @@ MILESTONES = [  # date, label; sources in docs/context_joj_dakar_2026.md
 
 
 def main() -> None:
-    reg = load_registry(ROOT / "configs" / "joj_measures.yaml")
+    reg = load_registry(ROOT / "measures" / "dakar_joj_2026.yaml")
     rows = [m for m in reg.values() if m.period]
     rows.sort(key=lambda m: (date.fromisoformat(m.period[0]), m.kind))
     fig, ax = plt.subplots(figsize=(11, 5.6))

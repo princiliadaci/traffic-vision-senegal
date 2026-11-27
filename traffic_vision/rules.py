@@ -1,19 +1,26 @@
 """Check mobility measures against what the video shows.
 
-A traffic plan is a list of rules: this lane for buses, no trucks between
-7:00 and 19:00, this road closed on these days. Each rule implies something
-that can be counted. This module turns three kinds of rules into indicators:
+A traffic plan, a regulation or a new infrastructure is a list of rules: this
+lane for buses, no trucks between 6:00 and 21:00, no commercial motorbikes in
+these districts, this road closed on Sunday mornings. Each rule implies
+something that can be counted. Five kinds of rules are covered:
 
 - ``reserved_lane``: who actually drove in the lane (zone events), and the
   share of the classes the lane was meant for;
-- ``class_ban``: how many vehicles of a banned class still passed during the
-  ban hours, compared with the hours outside the ban;
+- ``class_ban``: how many vehicles of a banned class still passed, during the
+  ban hours against outside them, on a line or inside a zone (a pedestrian
+  street is a zone where vehicles are banned);
+- ``movement_ban``: how many vehicles still made a banned turn, from one
+  counting line to another;
+- ``service_frequency``: whether the buses promised per hour actually pass;
 - ``closure``: a closed road moves traffic elsewhere. Its effect is measured on
   the diversion routes with a difference-in-differences
   (:func:`traffic_vision.evaluation.diff_in_diff`).
 
-The measures of the Dakar 2026 Youth Olympic Games are described, with their
-sources, in ``configs/joj_measures.yaml``.
+Measures are described, with their sources, in registries under
+``measures/``: the Dakar 2026 Youth Olympic Games, the Dakar BRT corridor, the
+okada ban in Lagos and the car-free days of Kigali are worked examples, and
+``measures/TEMPLATE.yaml`` starts a new one.
 
 Video sees classes, not permits: a car in a bus lane may be an accredited
 vehicle, and a "truck" may weigh less than the 3.5 tonnes of the rule. Results
@@ -31,7 +38,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-KINDS = ("reserved_lane", "class_ban", "closure")
+KINDS = ("reserved_lane", "class_ban", "movement_ban", "service_frequency", "closure")
 Z975 = 1.959963984540054
 
 
@@ -91,6 +98,9 @@ class Measure:
     allowed_classes: list[str] = field(default_factory=list)
     banned_classes: list[str] = field(default_factory=list)
     zone: str | None = None
+    lines: list[str] | None = None          # movement_ban: [from_line, to_line]
+    expected_per_hour: float | None = None  # service_frequency: promised vehicles per hour
+    recurrence: str = ""                    # e.g. "first and third Sunday of the month"
     indicator: str = ""
     observability: str = "partial"  # high | partial | low
     video_cannot_see: str = ""
@@ -105,16 +115,36 @@ class Measure:
             raise ValueError(f"{self.id}: a reserved lane needs a zone and allowed classes")
         if self.kind == "class_ban" and not self.banned_classes:
             raise ValueError(f"{self.id}: a class ban needs banned classes")
+        if self.kind == "movement_ban" and not (self.lines and len(self.lines) == 2):
+            raise ValueError(f"{self.id}: a movement ban needs lines: [from_line, to_line]")
+        if self.kind == "service_frequency" and not (self.expected_per_hour
+                                                     and self.allowed_classes):
+            raise ValueError(f"{self.id}: a service frequency needs expected_per_hour "
+                             "and allowed_classes (the vehicles of the service)")
 
     def in_period(self, day: datetime) -> bool | None:
+        """Whether a day falls within the measure's dates; open-ended if no last day."""
         if not self.period:
             return None
-        first, last = (datetime.fromisoformat(d).date() for d in self.period)
-        return first <= day.date() <= last
+        first = datetime.fromisoformat(str(self.period[0])).date()
+        last = self.period[1] if len(self.period) > 1 else None
+        if day.date() < first:
+            return False
+        if last in (None, "", "open"):
+            return True
+        return day.date() <= datetime.fromisoformat(str(last)).date()
+
+
+def registry_info(path: str | Path) -> dict:
+    """The header of a registry: city, country, context profile, policy type."""
+    import yaml
+
+    data = yaml.safe_load(Path(path).read_text())
+    return {k: v for k, v in data.items() if k != "measures"}
 
 
 def load_registry(path: str | Path) -> dict[str, Measure]:
-    """Read the measure registry (YAML) into Measure objects keyed by id."""
+    """Read a measure registry (YAML) into Measure objects keyed by id."""
     import yaml
 
     data = yaml.safe_load(Path(path).read_text())
@@ -161,11 +191,13 @@ class LaneUse:
 
 def lane_use(zone_events: pd.DataFrame, zone: str, allowed: list[str], duration_s: float,
              interval_s: float = 60.0, n_boot: int = 5000, seed: int = 0) -> LaneUse:
-    """Who used a reserved lane, with a bootstrap interval on the allowed share.
+    """Who used a reserved lane, with an interval on the allowed share.
 
     The share is a ratio of totals; its interval resamples time intervals
     (allowed count, total count) together, so busy and quiet minutes keep
-    their weight.
+    their weight. With fewer than five intervals a resampling interval means
+    nothing, so the Wilson score interval is used instead; it treats vehicles
+    as independent and is too narrow when buses come in platoons.
     """
     ev = zone_events[(zone_events["zone"] == zone) & (zone_events["road_class"] != "pedestrian")]
     hours = max(duration_s / 3600, 1e-9)
@@ -181,12 +213,18 @@ def lane_use(zone_events: pd.DataFrame, zone: str, allowed: list[str], duration_
         tot = np.bincount(idx, minlength=k).astype(float)
         ok = np.bincount(idx, weights=ev["road_class"].isin(allowed).to_numpy().astype(float),
                          minlength=k)
-        rng = np.random.default_rng(seed)
-        pick = rng.integers(0, k, (n_boot, k))
-        num, den = ok[pick].sum(axis=1), tot[pick].sum(axis=1)
-        ratios = num[den > 0] / den[den > 0]
-        if len(ratios):
-            share_ci = tuple(float(v) for v in np.percentile(ratios, [2.5, 97.5]))
+        if k >= 5:
+            rng = np.random.default_rng(seed)
+            pick = rng.integers(0, k, (n_boot, k))
+            num, den = ok[pick].sum(axis=1), tot[pick].sum(axis=1)
+            ratios = num[den > 0] / den[den > 0]
+            if len(ratios):
+                share_ci = tuple(float(v) for v in np.percentile(ratios, [2.5, 97.5]))
+        else:
+            z = Z975
+            centre = (share + z * z / (2 * n)) / (1 + z * z / n)
+            half = z * math.sqrt(share * (1 - share) / n + z * z / (4 * n * n)) / (1 + z * z / n)
+            share_ci = (max(0.0, centre - half), min(1.0, centre + half))
     return LaneUse(zone, list(allowed), n, n_ok, share, share_ci, others / hours,
                    (o_lo / hours, o_hi / hours), hours,
                    ev["road_class"].value_counts().to_dict())
@@ -237,8 +275,8 @@ class BanCheck:
                   None: ""}[self.in_period]
         text = "; ".join(parts)
         return text[:1].upper() + text[1:] + "." + period + (
-            " The class seen on video is not the legal category (for example the 3.5 t "
-            "limit), so read these as observed flows, not offences.")
+            " The class seen on video is not the legal category (a weight limit, a "
+            "commercial licence, a permit), so read these as observed flows, not offences.")
 
 
 def ban_check(crossings: pd.DataFrame, banned: list[str], window: TimeWindow,
@@ -250,7 +288,8 @@ def ban_check(crossings: pd.DataFrame, banned: list[str], window: TimeWindow,
     recording from 6:30 to 7:30 compares the half hour before a 7:00 ban with
     the half hour after it.
     """
-    if start_clock is None and "clock_time" in crossings.columns and len(crossings):
+    if (start_clock is None and "clock_time" in crossings.columns and len(crossings)
+            and pd.notna(crossings.iloc[0]["clock_time"])):
         first = crossings.iloc[0]
         start_clock = (pd.to_datetime(first["clock_time"])
                        - timedelta(seconds=float(first["video_time_s"]))).isoformat()
@@ -282,3 +321,114 @@ def ban_check(crossings: pd.DataFrame, banned: list[str], window: TimeWindow,
     in_period = measure.in_period(t0) if measure else None
     return BanCheck(list(banned), str(window), h_in, h_out, n_in, n_out, r_in, ci_in, r_out,
                     ci_out, in_period)
+
+
+# ---------------------------------------------------------------------------
+# Banned movements and promised service frequencies
+# ---------------------------------------------------------------------------
+
+@dataclass
+class RateCheck:
+    label: str
+    n: int
+    hours: float
+    rate: float
+    rate_ci: tuple[float, float]
+    expected: float | None = None
+
+    def as_text(self) -> str:
+        lo, hi = self.rate_ci
+        text = (f"{self.label}: {self.n} in {self.hours * 60:.0f} min, {self.rate:.1f} per hour "
+                f"(95% CI {lo:.1f} to {hi:.1f})")
+        if self.expected is not None:
+            if hi < self.expected:
+                verdict = "fewer than promised: the interval is below the promised rate"
+            elif lo > self.expected:
+                verdict = "more than promised"
+            else:
+                verdict = "compatible with the promised rate"
+            text += f"; promised {self.expected:g} per hour, {verdict}"
+        return text + "."
+
+
+def movement_check(crossings: pd.DataFrame, from_line: str, to_line: str,
+                   duration_s: float, classes: list[str] | None = None) -> RateCheck:
+    """Vehicles per hour making the movement from one line to another."""
+    from .analysis import movements
+
+    mv = movements(crossings)
+    if classes:
+        mv = mv[mv["road_class"].isin(classes)]
+    n = int((mv["movement"] == f"{from_line}>{to_line}").sum()) if len(mv) else 0
+    hours = max(duration_s / 3600, 1e-9)
+    lo, hi = poisson_ci(n)
+    return RateCheck(f"movement {from_line} > {to_line}", n, hours, n / hours,
+                     (lo / hours, hi / hours))
+
+
+def frequency_check(crossings: pd.DataFrame, classes: list[str], expected_per_hour: float,
+                    duration_s: float, line: str | None = None) -> RateCheck:
+    """Observed vehicles of a service per hour against the promised rate."""
+    sel = crossings[crossings["road_class"].isin(classes)]
+    if line is not None and "line" in sel.columns:
+        sel = sel[sel["line"] == line]
+    n = len(sel)
+    hours = max(duration_s / 3600, 1e-9)
+    lo, hi = poisson_ci(n)
+    return RateCheck("/".join(classes) + " passing", n, hours, n / hours,
+                     (lo / hours, hi / hours), expected_per_hour)
+
+
+def check_measure(m: Measure, run_dir: str | Path, zone: str | None = None,
+                  interval_s: float = 60.0, start_clock: str | None = None) -> str:
+    """Run the check that fits a measure on a run folder; return a report."""
+    import json
+
+    run = Path(run_dir)
+    summary = json.loads((run / "summary.json").read_text())
+    duration = summary["video"]["duration_s"]
+    start = start_clock or summary["config"].get("start_clock")
+    cx = pd.read_csv(run / "crossings.csv")
+    zf = run / "zone_events.csv"
+    zev = pd.read_csv(zf) if zf.exists() else None
+
+    zones_in_run = sorted((summary["config"].get("zones") or {}).keys())
+    wanted = zone or m.zone
+    if wanted and m.kind in ("reserved_lane", "class_ban") and wanted not in zones_in_run:
+        if m.kind == "reserved_lane" or m.zone:
+            have = ", ".join(zones_in_run) or "none"
+            raise ValueError(f"Zone '{wanted}' is not in this run (zones: {have}). Pass "
+                             f"--zone <name> or run the video with a zone named '{wanted}'.")
+    if m.kind == "class_ban" and m.window is not None and start is None and \
+            ("clock_time" not in cx.columns or cx["clock_time"].isna().all()):
+        raise ValueError(f"This ban applies {m.window}: give the clock time of the first "
+                         "frame with --start-clock, e.g. 2026-11-07T22:30:00.")
+    if m.kind == "reserved_lane":
+        if zev is None:
+            raise ValueError(f"No zone_events.csv in {run}: run the video with a zone "
+                             f"named '{m.zone}'.")
+        return lane_use(zev, zone or m.zone, m.allowed_classes, duration, interval_s).as_text()
+    if m.kind == "class_ban":
+        events = cx
+        if m.zone or zone:
+            if zev is None:
+                raise ValueError(f"This ban applies inside a zone: run with a zone named "
+                                 f"'{m.zone}'.")
+            events = zev[zev["zone"] == (zone or m.zone)]
+        if m.window is None:
+            sel = events[events["road_class"].isin(m.banned_classes)]
+            hours = max(duration / 3600, 1e-9)
+            lo, hi = poisson_ci(len(sel))
+            return (RateCheck("/".join(m.banned_classes), len(sel), hours, len(sel) / hours,
+                              (lo / hours, hi / hours)).as_text()
+                    + " The ban applies all day: compare with a recording from before the "
+                    "ban, or from a control area, with `traffic-vision did`.")
+        return ban_check(events, m.banned_classes, m.window, duration, start, m).as_text()
+    if m.kind == "movement_ban":
+        return movement_check(cx, m.lines[0], m.lines[1], duration,
+                              m.banned_classes or None).as_text()
+    if m.kind == "service_frequency":
+        return frequency_check(cx, m.allowed_classes, m.expected_per_hour, duration).as_text()
+    return ("A closure is measured on the diversion routes, against a control street, with "
+            "`traffic-vision did` (four recordings: treated and control, before and during).")
+

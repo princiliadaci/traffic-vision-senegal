@@ -1,0 +1,37 @@
+# Ban on commercial motorcycles (okada) in six local government areas of Lagos.
+# Worked example of a city-wide regulation on one class of vehicle, outside
+# Senegal.
+#
+# Field reference: measures/README.md. Check the official texts before reuse.
+
+city: Lagos
+country: Nigeria
+context: lagos
+policy_type: regulation
+summary: Total ban on commercial motorcycles announced on 18 May 2022, effective 1 June 2022, on highways of six local government areas and nine local council development areas.
+
+measures:
+
+  - id: lagos_okada_ban
+    name: Commercial motorcycles (okada) banned in six local government areas
+    kind: class_ban
+    place: Highways of Ikeja, Surulere, Eti-Osa, Lagos Mainland, Lagos Island and Apapa local government areas
+    period: ["2022-06-01", "open"]
+    banned_classes: [motorcycle]
+    indicator: >
+      Motorcycles per hour on highways inside the ban area against comparable
+      highways outside it (difference-in-differences), and how the flow evolves
+      in the months after the start of enforcement. Newspapers reported that
+      earlier bans faded after a few months: a monthly series answers that.
+    observability: partial
+    video_cannot_see: >
+      Whether a motorcycle is commercial (okada) or private, and exemptions;
+      a passenger on the back seat is a hint, not a proof
+    notes: >
+      The government said it had provided last-mile, medium and high capacity
+      buses in the affected areas: bus flows on the same roads are part of the
+      evaluation.
+    sources:
+      - https://www.channelstv.com/?p=660004
+      - https://guardian.ng/news/lagos-announces-total-ban-on-okada-in-six-local-governments/
+      - https://businessday.ng/?p=644378
