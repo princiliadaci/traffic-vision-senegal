@@ -98,7 +98,11 @@ studies per scenario, where the truth is known:
 | A closure adds 12 vehicles per 5 min; detection falls from 82% to 70% during the measure | effect 0.7, interval contains the truth in 35% of studies | effect 11.8, in 94% |
 | A truck ban: 12 trucks per hour still pass, half the car rapides are seen as trucks | 59.6 trucks per hour, in 0% | 12.0 trucks per hour, in 92% |
 
-![Trucks per hour during a ban, network alone and corrected](docs/results/simulation_lookalike.png)
+![Estimated effect and coverage as detection falls during the measure](docs/results/curves_detection.png)
+
+When the camera sees less during the measure, raw counts reverse the
+conclusion: below 70% detection the closure seems to reduce traffic. The
+prediction-powered estimate stays at the true effect.
 
 A before/after comparison mistakes the city-wide change for the effect, raw
 counts shrink it, and ordinary intervals are too narrow when traffic is

@@ -207,6 +207,11 @@ measured on the local dataset of section 6.
 
 ![Labels given by each detector](results/open_vocabulary_probe.png)
 
+The same results as confusion matrices, by local vehicle type
+([`scripts/probe_confusion.py`](../scripts/probe_confusion.py)):
+
+![Confusion matrices of the two detectors](results/open_vocabulary_confusion.png)
+
 **Why this error matters more than accuracy figures suggest.** Mapping
 "trailer truck" to "bus" would break the count of real trucks, so the error
 cannot be fixed by renaming labels. And it falls exactly where a rule draws a
@@ -279,6 +284,16 @@ PPI++ was unstable with six labels.
 
 ![Experiment B](results/simulation_cameras.png)
 
+**Sensitivity curve.** Moving the detection rate during the measure from 82%
+down to 52%, with everything else unchanged (500 studies per point,
+[`scripts/sensitivity_curves.py`](../scripts/sensitivity_curves.py)): the raw
+and singly calibrated estimates fall to zero at 70% detection and **change
+sign** below it, so a study would conclude that the closure reduced traffic on
+the diversion route. The prediction-powered estimate stays at 12, with 93 to
+96% coverage at every point.
+
+![Effect and coverage as detection falls during the measure](results/curves_detection.png)
+
 **C. A vehicle that looks like the banned class.** The error found in
 section 4.2, in a simulation: a truck ban checked over four hours where 12
 trucks per hour still pass among 96 car rapides, and the detector labels a
@@ -298,6 +313,12 @@ make about a third narrower.
 
 ![Experiment C](results/simulation_lookalike.png)
 
+As a curve, from 0 to 60% of car rapides seen as trucks: each extra 10% adds
+about 10 phantom trucks per hour to the network's count, while the
+prediction-powered estimate stays at 12 (coverage 91 to 93%).
+
+![Trucks per hour and coverage as the confusion grows](results/curves_lookalike.png)
+
 ### 4.5 How much to film (Q4)
 
 Chance that the 95% interval excludes zero for a +20% effect on a street with
@@ -308,6 +329,14 @@ Chance that the 95% interval excludes zero for a +20% effect on a street with
 | 1 | 22% | 34% | 56% |
 | 3 | 46% | 70% | 93% |
 | 7 | 76% | 96% | 100% |
+
+The same design as curves (right), and the effect of the number of hand
+counts on the interval (left): beyond about ten hand-counted windows per
+recording, the interval barely narrows, because what remains is the
+variability of traffic itself. More filming then helps more than more
+counting.
+
+![Interval width against hand counts, and power against days filmed](results/curves_design.png)
 
 **Several days per period, not a few hours, are needed.** For a one-day
 event the effect can only be detected if it is large, which is worth knowing
