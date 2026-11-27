@@ -169,8 +169,9 @@ def cmd_measures(a: argparse.Namespace) -> None:
                 continue
             info = registry_info(f)
             n = len(load_registry(f))
+            plural = "s" if n != 1 else ""
             print(f"{f.stem}  [{info.get('policy_type', '-')}, context {info.get('context', '-')}]"
-                  f"\n    {info.get('city', '-')}, {info.get('country', '-')}: {n} measure{"s" if n != 1 else ""}"
+                  f"\n    {info.get('city', '-')}, {info.get('country', '-')}: {n} measure{plural}"
                   f"\n    {' '.join(str(info.get('summary', '')).split())}\n")
         return
     p = _registry_path(a.registry)
