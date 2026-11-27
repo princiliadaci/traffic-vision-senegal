@@ -5,6 +5,7 @@ scripts/probe_open_vocabulary.py) and draws, for the COCO and the
 open-vocabulary detector, the class each hand-boxed vehicle was counted in.
 
     python scripts/probe_confusion.py      # writes docs/results/open_vocabulary_confusion.png
+                                           # and open_vocabulary_boxes.jpg (the two photos, boxed)
 """
 
 from __future__ import annotations
@@ -41,6 +42,46 @@ def matrices(md_path: Path) -> dict[str, np.ndarray]:
             m[ROWS.index(GROUP[local]), COLS.index("missed" if result == "missed" else counted)] += 1
         out[model] = m
     return out
+
+
+def boxed_photos(md_path: Path, out: Path) -> None:
+    """The two street photos with each hand-drawn box: solid red when at least one
+    detector put the vehicle in the wrong class (or missed it), dashed green otherwise,
+    and the labels the two detectors gave to the wrong ones."""
+    import matplotlib.pyplot as plt
+    import yaml
+    from matplotlib.patches import Rectangle
+    from PIL import Image
+
+    spec = yaml.safe_load((RESULTS / "probe_annotations.yaml").read_text())
+    lines = md_path.read_text().splitlines()
+    rows = [[c.strip() for c in ln.strip().strip("|").split("|")] for ln in lines
+            if ln.startswith("| dakar_")]
+    rows = [r for r in rows if len(r) == 7]
+    files = ["docs/img/dakar_car_rapide_hlm.jpg", "docs/img/dakar_traffic.jpg"]
+    fig, axes = plt.subplots(1, 2, figsize=(10.5, 3.95), gridspec_kw={"wspace": 0.02})
+    for ax, f in zip(axes, files):
+        item = next(i for i in spec["images"] if i["file"] == f)
+        name = Path(f).name
+        per_model = {m: [r for r in rows if r[0] == name and r[3] == m] for m in MODELS}
+        ax.imshow(Image.open(ROOT / f))
+        ax.set_axis_off()
+        for k, v in enumerate(item["vehicles"]):
+            res = {m: per_model[m][k] for m in MODELS}
+            wrong = any(r[6] != "right" for r in res.values())
+            x1, y1, x2, y2 = v["box"]
+            ax.add_patch(Rectangle((x1, y1), x2 - x1, y2 - y1, fill=False, lw=2.6 if wrong else 1.8,
+                                   ls="-" if wrong else "--", ec=WRONG if wrong else "#2e7d32"))
+            if wrong:
+                labels = " / ".join(dict.fromkeys(r[4].split(" (")[0] for r in res.values()))
+                right_edge = x2 > 700
+                ax.text(x2 - 4 if right_edge else x1 + 4, y2 - 6 if y2 < 560 else y1 + 6,
+                        f"{v['local']}: {labels}", fontsize=9.5, color="white", fontweight="bold",
+                        va="bottom" if y2 < 560 else "top", ha="right" if right_edge else "left",
+                        bbox={"facecolor": WRONG, "pad": 2.5, "lw": 0})
+    fig.subplots_adjust(left=0, right=1, top=1, bottom=0)
+    fig.savefig(out, dpi=250, facecolor="white", pil_kwargs={"quality": 90})
+    plt.close(fig)
 
 
 def main() -> None:
@@ -84,6 +125,7 @@ def main() -> None:
     fig.savefig(RESULTS / "open_vocabulary_confusion.png", dpi=300, facecolor="white")
     for model, m in mats.items():
         print(model, "right:", sum(m[i, j] for i, j in RIGHT), "of", m.sum())
+    boxed_photos(RESULTS / "open_vocabulary_probe.md", RESULTS / "open_vocabulary_boxes.jpg")
 
 
 if __name__ == "__main__":
