@@ -25,7 +25,7 @@ COLS = ["bus", "car", "truck", "motorcycle", "missed"]
 RIGHT = {(0, 0), (1, 0), (2, 1), (3, 2), (4, 3)}
 MODELS = {"COCO (YOLO11n)": "COCO, closed vocabulary (YOLO11n)",
           "Open vocabulary, no prompt (YOLOE-11S-PF)": "Open vocabulary, no prompt (YOLOE)"}
-TEXT, MUTED, WRONG = "#191919", "#666666", "#d62728"
+TEXT, MUTED, WRONG, RIGHT_BOX = "#191919", "#666666", "#d9702a", "#a585dc"
 
 
 def matrices(md_path: Path) -> dict[str, np.ndarray]:
@@ -45,11 +45,12 @@ def matrices(md_path: Path) -> dict[str, np.ndarray]:
 
 
 def boxed_photos(md_path: Path, out: Path) -> None:
-    """The two street photos with each hand-drawn box: solid red when at least one
-    detector put the vehicle in the wrong class (or missed it), dashed green otherwise,
+    """The two street photos with each hand-drawn box: solid orange when at least one
+    detector put the vehicle in the wrong class (or missed it), dashed lilac otherwise,
     and the labels the two detectors gave to the wrong ones."""
     import matplotlib.pyplot as plt
     import yaml
+    import matplotlib.patheffects as pe
     from matplotlib.patches import Rectangle
     from PIL import Image
 
@@ -70,8 +71,11 @@ def boxed_photos(md_path: Path, out: Path) -> None:
             res = {m: per_model[m][k] for m in MODELS}
             wrong = any(r[6] != "right" for r in res.values())
             x1, y1, x2, y2 = v["box"]
-            ax.add_patch(Rectangle((x1, y1), x2 - x1, y2 - y1, fill=False, lw=2.6 if wrong else 1.8,
-                                   ls="-" if wrong else "--", ec=WRONG if wrong else "#2e7d32"))
+            box = ax.add_patch(Rectangle((x1, y1), x2 - x1, y2 - y1, fill=False,
+                                         lw=3.0 if wrong else 1.8, ls="-" if wrong else "--",
+                                         ec=WRONG if wrong else RIGHT_BOX))
+            if wrong:   # a white edge keeps the frame visible on yellow vehicles
+                box.set_path_effects([pe.Stroke(linewidth=5.2, foreground="white"), pe.Normal()])
             if wrong:
                 labels = " / ".join(dict.fromkeys(r[4].split(" (")[0] for r in res.values()))
                 right_edge = x2 > 700
@@ -119,7 +123,7 @@ def main() -> None:
         ax.grid(which="minor", color="#d9d9d9", lw=1)
         ax.tick_params(which="minor", length=0)
     fig.text(0.01, 0.955, "true vehicle  ↓      counted as →", fontsize=12, color=MUTED)
-    fig.text(0.99, 0.955, "red frame: wrong class or missed", fontsize=12, color=WRONG,
+    fig.text(0.99, 0.955, "orange frame: wrong class or missed", fontsize=12, color=WRONG,
              ha="right")
     fig.subplots_adjust(left=0.17, right=0.995, top=0.83, bottom=0.12)
     fig.savefig(RESULTS / "open_vocabulary_confusion.png", dpi=300, facecolor="white")

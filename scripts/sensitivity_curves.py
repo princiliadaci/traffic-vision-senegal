@@ -33,8 +33,9 @@ from traffic_vision.simulate import (BanScenario, Scenario, ban_study, one_study
                                      power_table)
 
 TEXT, MUTED, GRID = "#191919", "#666666", "#e5e5e5"
-BLUE, AQUA, ORANGE = "#257de0", "#00b894", "#f47230"
-RAMP = ("#9dc8f7", "#338ced", "#0f4a96")  # 2, 4, 8 hours a day (light to dark)
+# Poster palette: orange for counts left as they are, purples for corrected counts.
+RAW, MID, OURS = "#d9702a", "#a585dc", "#7040b0"
+RAMP = ("#cdbdf0", "#9a74d6", "#5a2f99")  # 2, 4, 8 hours a day (light to dark)
 TRUTH = 12.0
 
 
@@ -122,8 +123,8 @@ def plot_detection(pts, path):
 
     x = [100 * p["recall_during"] for p in pts]
     fig, (a1, a2) = plt.subplots(1, 2, figsize=(10.5, 4.3), gridspec_kw={"wspace": 0.42})
-    series = (("did_raw", BLUE, "raw counts"), ("did_ratio_batch", AQUA, "corrected on one camera"),
-              ("did_ppi_ratio", ORANGE, "prediction-powered (6 hand counts per recording)"))
+    series = (("did_raw", RAW, "raw counts"), ("did_ratio_batch", MID, "corrected on one camera"),
+              ("did_ppi_ratio", OURS, "prediction-powered (6 hand counts per recording)"))
     handles = []
     for k, c, lab in series:
         a1.fill_between(x, [p[k]["q10"] for p in pts], [p[k]["q90"] for p in pts], color=c,
@@ -157,8 +158,8 @@ def plot_lookalike(pts, path):
 
     x = [100 * p["confusion"] for p in pts]
     fig, (a1, a2) = plt.subplots(1, 2, figsize=(10.5, 4.3), gridspec_kw={"wspace": 0.42})
-    series = (("network", BLUE, "network alone"),
-              ("ppi_ratio", ORANGE, "prediction-powered (6 hand counts)"))
+    series = (("network", RAW, "network alone"),
+              ("ppi_ratio", OURS, "prediction-powered (6 hand counts)"))
     handles = []
     for k, c, lab in series:
         a1.fill_between(x, [p[k]["q10"] for p in pts], [p[k]["q90"] for p in pts], color=c,
@@ -191,7 +192,7 @@ def plot_design(hand, power, path):
     fig, (a1, a2) = plt.subplots(1, 2, figsize=(10.5, 4.3), gridspec_kw={"wspace": 0.42})
     k = [p["hand_counts"] for p in hand]
     hw = [p["did_ppi_ratio"]["half_width"] for p in hand]
-    a1.plot(k, hw, color=ORANGE, lw=2.6, marker="o", ms=6, mec="white", mew=1.2)
+    a1.plot(k, hw, color=OURS, lw=2.6, marker="o", ms=6, mec="white", mew=1.2)
     cov = [100 * p["did_ppi_ratio"]["coverage"] for p in hand]
     a1.text(25, 2.0, f"coverage {min(cov):.0f} to {max(cov):.0f}% at every point", ha="right",
             fontsize=FS - 1, color=MUTED)
