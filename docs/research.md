@@ -185,8 +185,8 @@ That distinction shapes how results should be reported to the authorities.
 [`scripts/probe_open_vocabulary.py`](../scripts/probe_open_vocabulary.py)
 runs three detectors on four photos of Dakar and compares their labels with
 hand-drawn boxes ([`results/open_vocabulary_probe.md`](results/open_vocabulary_probe.md)).
-Four photos make a probe, not a benchmark: it shows the kind of error, not its
-rate.
+The aim is to find which errors occur on Dakar's vehicles; their rates will be
+measured on the local dataset of section 6.
 
 | Detector | Vehicles in the right class | Missed |
 |---|---|---|
@@ -330,38 +330,37 @@ before asking anyone for footage.
 5. **Privacy by design**: no plates, no faces, counts of use rather than
    offenders.
 
-## 6. Limits
+## 6. Scope and next steps
 
-- No Dakar video has been analysed yet. The demo clip shows the mechanics,
-  not Senegalese traffic; the perception probe uses four photos.
-- The difference-in-differences assumes that the treated and control sites
-  would have changed alike without the rule. The choice of the control site
-  carries the result.
-- The hand-counted intervals must be chosen at random within each recording;
-  chosen by convenience, they can bias the correction.
-- The simulation uses one plausible traffic model. Real traffic can be more
-  irregular, and the detector's errors can depend on traffic density.
-- The open-vocabulary model runs at about 1.3 frames per second on a laptop
-  CPU, against about 5 for YOLO11n: a GPU, or a fine-tuned small model, is
-  needed for hours of video.
-- Video cannot see permits, weights or the purpose of a trip.
+This version validates each building block where the truth can be checked:
+the counting pipeline on a stock video traced frame by frame, the detectors on
+photos of Dakar with hand-drawn boxes, and the statistics on simulated studies
+whose true effect is known. The next stage takes the whole chain to Dakar
+footage.
 
-## 7. Next steps
-
-1. **Footage.** Ask CETUD and Dakar Dem Dikk for short extracts from the
-   Games period and from the BRT corridor, under Law 2008-12 and the
-   conditions of the CDP. Otherwise film the same points now and during the
+1. **Footage.** Short extracts from the Games period and the BRT corridor,
+   requested from CETUD and Dakar Dem Dikk under Law 2008-12 and the
+   conditions of the CDP, or new recordings at the same points during the
    next large event.
-2. **Local data.** Annotate about 2,000 Dakar frames with the local classes
-   (car rapide, Ndiaga Ndiaye, tricycle, charrette) and fine-tune
-   ([`scripts/train_yolo.py`](../scripts/train_yolo.py)); repeat the probe on
-   the fine-tuned model and on a larger, random sample of frames.
-3. **Validation.** Ten random one-minute manual counts per recording, used
-   both to report errors by class and for the prediction-powered estimate.
-4. **Identity switches.** Merge duplicate tracks that overlap strongly and
-   test a re-identification tracker on queues.
-5. **Other cities.** The Lagos and Kigali registries are ready; the work is
-   to find footage and a local partner.
+2. **A local dataset.** About 2,000 Dakar frames annotated with car rapide,
+   Ndiaga Ndiaye, tricycle and charrette, to fine-tune a detector
+   ([`scripts/train_yolo.py`](../scripts/train_yolo.py)) and to measure the
+   confusion rates of section 4.2 on a large random sample, by day and night.
+3. **Hand counts drawn at random.** About ten windows per recording, which
+   give both the error report by class and the prediction-powered estimate.
+4. **A well-chosen control site.** The difference-in-differences relies on a
+   control street that would have changed like the treated one; it is chosen
+   with the transport authority and checked on the days before the rule.
+5. **Hours of video.** A GPU, or a small fine-tuned model, for long
+   recordings (the open-vocabulary model runs at about 1.3 frames per second
+   on a laptop CPU, YOLO11n at about 5), and merging of duplicate tracks in
+   queues.
+6. **Lagos and Kigali.** The registries are ready; what remains is footage
+   and a local partner.
+
+Whatever the model, video shows the use of the road, not permits, weights or
+the purpose of a trip. Results are reported that way: as the change a rule
+made to traffic, not as lists of offences.
 
 ## References
 

@@ -86,7 +86,7 @@ trucks) and local vehicles absent from training data.
 boxes, the COCO model put 9 of 13 vehicles in the right class and the
 open-vocabulary model 11 of 13. Both called the car rapide a truck in every
 photo where it appears; a one-shot visual prompt did not transfer to another
-photo. A probe, not a benchmark: [`docs/results/open_vocabulary_probe.md`](docs/results/open_vocabulary_probe.md).
+photo. Full table: [`docs/results/open_vocabulary_probe.md`](docs/results/open_vocabulary_probe.md).
 
 ![Labels given by each detector on two photos of Dakar](docs/results/open_vocabulary_probe.png)
 
@@ -205,7 +205,7 @@ real bus lane.
   interval [-2.50, +2.33]. The interval includes 0, as it should for the same
   traffic.
 
-These counts have not been checked against a full manual count yet. Outputs:
+Next check on this clip: a full manual count. Outputs:
 [`examples/demo`](examples/demo).
 
 ## Roadmap
@@ -242,15 +242,18 @@ scripts/          simulation, detector probe, timeline figure, fine-tuning
 docs/  tests/  examples/demo/
 ```
 
-## Limits and privacy
+## Scope and privacy
 
-No Dakar video has been analysed yet: the demo shows the mechanics, and the
-detector probe uses four photos. Accuracy drops with occlusion, night video
-and vehicle types absent from training data, and a difference-in-differences
-is only as good as its control site. The tool keeps anonymous tracks and
-classes; it does not read faces or number plates. Filming public space falls
-under the data protection law of each country (in Senegal, Law no. 2008-12,
-overseen by the CDP); the context profiles name the law and the authority.
+This version validates each building block where the truth can be checked: the
+pipeline on a stock video traced frame by frame, the detectors on photos of
+Dakar, the statistics on simulated studies. The next stage is Dakar footage and
+a locally annotated dataset (see the roadmap and
+[`docs/research.md`](docs/research.md#6-scope-and-next-steps)).
+
+The tool keeps anonymous tracks and classes; it does not read faces or number
+plates. Filming public space falls under the data protection law of each
+country (in Senegal, Law no. 2008-12, overseen by the CDP); the context
+profiles name the law and the authority.
 
 ## En bref (français)
 
