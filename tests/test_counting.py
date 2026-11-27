@@ -37,3 +37,18 @@ def test_crossing_outside_the_segment_is_ignored():
 def test_from_relative():
     ln = CountingLine.from_relative((0.1, 0.5), (0.9, 0.5), 1000, 400)
     assert ln.a == (100.0, 200.0) and ln.b == (900.0, 200.0)
+
+
+def test_dead_band_ignores_a_car_waiting_on_the_line():
+    ln = CountingLine((0, 100), (200, 100), directions=("in", "out"), margin=10)
+    ln.update(5, "car", (60, 70), 0, 0.0)                    # clearly before the line
+    for i, y in enumerate([96, 104, 97, 105, 99], start=1):  # waiting at a red light
+        assert ln.update(5, "car", (60, y), i, i / 25) is None
+    ev = ln.update(5, "car", (60, 130), 6, 0.3)               # drives on
+    assert ev is not None and ev.direction == "in"
+    assert ln.totals() == {"car": {"in": 1}}
+
+
+def test_from_relative_margin():
+    ln = CountingLine.from_relative((0.1, 0.5), (0.9, 0.5), 1000, 400, margin_frac=0.01)
+    assert ln.margin == 4.0

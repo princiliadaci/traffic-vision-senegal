@@ -78,6 +78,17 @@ def make_report(run_dir: str | Path, interval_s: float = 10.0) -> Path:
         "![Flow by class](flow_by_class.png)",
         "",
     ]
+    zf = run_dir / "zone_events.csv"
+    if zf.exists():
+        zev = pd.read_csv(zf)
+        lines += ["## Use of zones (reserved lanes)", ""]
+        if len(zev):
+            zt = zev.groupby(["zone", "road_class"]).size().unstack(fill_value=0)
+            lines += [zt.to_markdown(), "",
+                      "Each object is counted once per zone, after two processed frames "
+                      "inside it. Check a lane rule with `traffic-vision check`.", ""]
+        else:
+            lines += ["No object used the zones.", ""]
     out = run_dir / "report.md"
     out.write_text("\n".join(lines))
     return out

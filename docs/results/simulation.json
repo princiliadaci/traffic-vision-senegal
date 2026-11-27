@@ -1,0 +1,190 @@
+{
+  "settings": {
+    "recording_hours": [
+      2,
+      6
+    ],
+    "interval_minutes": 5,
+    "base_treated": 60.0,
+    "base_control": 50.0,
+    "city_shock": 6.0,
+    "true_effect": 12.0,
+    "recall": 0.82,
+    "false_positives_per_interval": 1.0,
+    "sigma": 0.15,
+    "manual_intervals": 8,
+    "studies": 1000,
+    "bootstrap_resamples": 999,
+    "seed": 2026
+  },
+  "results": {
+    "2-hour recordings, autocorrelated traffic (rho = 0.6)": {
+      "E1": {
+        "mean_estimate": 14.783291666666669,
+        "bias": 2.7832916666666687,
+        "rmse": 6.838143251278083,
+        "coverage": 0.695,
+        "mean_ci_width": 13.786379166666665,
+        "detects_effect": 0.898
+      },
+      "E2": {
+        "mean_estimate": 10.061291666666667,
+        "bias": -1.9387083333333326,
+        "rmse": 8.204047421682924,
+        "coverage": 0.703,
+        "mean_ci_width": 17.758324999999992,
+        "detects_effect": 0.565
+      },
+      "E3": {
+        "mean_estimate": 12.039842025680223,
+        "bias": 0.03984202568022255,
+        "rmse": 9.548082151198336,
+        "coverage": 0.731,
+        "mean_ci_width": 21.309268464317665,
+        "detects_effect": 0.565
+      },
+      "E4": {
+        "mean_estimate": 12.039842025680223,
+        "bias": 0.03984202568022255,
+        "rmse": 9.548082151198336,
+        "coverage": 0.814,
+        "mean_ci_width": 25.481374103678906,
+        "detects_effect": 0.475
+      },
+      "E5": {
+        "mean_estimate": 12.039842025680223,
+        "bias": 0.03984202568022255,
+        "rmse": 9.548082151198336,
+        "coverage": 0.927,
+        "mean_ci_width": 37.18061697223185,
+        "detects_effect": 0.266
+      }
+    },
+    "6-hour recordings, autocorrelated traffic (rho = 0.6)": {
+      "E1": {
+        "mean_estimate": 14.817972222222222,
+        "bias": 2.817972222222222,
+        "rmse": 4.74455039889496,
+        "coverage": 0.606,
+        "mean_ci_width": 8.39949861111111,
+        "detects_effect": 0.997
+      },
+      "E2": {
+        "mean_estimate": 10.04513888888889,
+        "bias": -1.9548611111111107,
+        "rmse": 5.248416832133969,
+        "coverage": 0.703,
+        "mean_ci_width": 10.78668333333333,
+        "detects_effect": 0.826
+      },
+      "E3": {
+        "mean_estimate": 12.008477410863373,
+        "bias": 0.008477410863372725,
+        "rmse": 5.8373205795197345,
+        "coverage": 0.726,
+        "mean_ci_width": 12.956639970231036,
+        "detects_effect": 0.826
+      },
+      "E4": {
+        "mean_estimate": 12.008477410863373,
+        "bias": 0.008477410863372725,
+        "rmse": 5.8373205795197345,
+        "coverage": 0.852,
+        "mean_ci_width": 17.12826429805738,
+        "detects_effect": 0.744
+      },
+      "E5": {
+        "mean_estimate": 12.008477410863373,
+        "bias": 0.008477410863372725,
+        "rmse": 5.8373205795197345,
+        "coverage": 0.94,
+        "mean_ci_width": 24.555902912797865,
+        "detects_effect": 0.49
+      }
+    },
+    "2-hour recordings, independent intervals (rho = 0)": {
+      "E1": {
+        "mean_estimate": 14.818333333333333,
+        "bias": 2.8183333333333334,
+        "rmse": 4.24328472739902,
+        "coverage": 0.861,
+        "mean_ci_width": 12.589441666666664,
+        "detects_effect": 0.996
+      },
+      "E2": {
+        "mean_estimate": 9.817,
+        "bias": -2.183,
+        "rmse": 4.708319321513074,
+        "coverage": 0.93,
+        "mean_ci_width": 16.314599999999995,
+        "detects_effect": 0.652
+      },
+      "E3": {
+        "mean_estimate": 11.737701084701769,
+        "bias": -0.26229891529823135,
+        "rmse": 5.007371991358739,
+        "coverage": 0.944,
+        "mean_ci_width": 19.541504386173568,
+        "detects_effect": 0.652
+      },
+      "E4": {
+        "mean_estimate": 11.737701084701769,
+        "bias": -0.26229891529823135,
+        "rmse": 5.007371991358739,
+        "coverage": 0.929,
+        "mean_ci_width": 18.699053625673915,
+        "detects_effect": 0.684
+      },
+      "E5": {
+        "mean_estimate": 11.737701084701769,
+        "bias": -0.26229891529823135,
+        "rmse": 5.007371991358739,
+        "coverage": 0.961,
+        "mean_ci_width": 23.428314653093242,
+        "detects_effect": 0.493
+      }
+    },
+    "6-hour recordings, independent intervals (rho = 0)": {
+      "E1": {
+        "mean_estimate": 14.73763888888889,
+        "bias": 2.73763888888889,
+        "rmse": 3.3477297333094187,
+        "coverage": 0.702,
+        "mean_ci_width": 7.383715972222221,
+        "detects_effect": 1.0
+      },
+      "E2": {
+        "mean_estimate": 9.808194444444446,
+        "bias": -2.191805555555554,
+        "rmse": 3.296316453329963,
+        "coverage": 0.84,
+        "mean_ci_width": 9.55177222222222,
+        "detects_effect": 0.974
+      },
+      "E3": {
+        "mean_estimate": 11.737524251076708,
+        "bias": -0.2624757489232916,
+        "rmse": 2.9890598316782713,
+        "coverage": 0.941,
+        "mean_ci_width": 11.472992792897466,
+        "detects_effect": 0.974
+      },
+      "E4": {
+        "mean_estimate": 11.737524251076708,
+        "bias": -0.2624757489232916,
+        "rmse": 2.9890598316782713,
+        "coverage": 0.933,
+        "mean_ci_width": 11.217188997645637,
+        "detects_effect": 0.981
+      },
+      "E5": {
+        "mean_estimate": 11.737524251076708,
+        "bias": -0.2624757489232916,
+        "rmse": 2.9890598316782713,
+        "coverage": 0.953,
+        "mean_ci_width": 13.240345273033752,
+        "detects_effect": 0.938
+      }
+    }
+  }
+}

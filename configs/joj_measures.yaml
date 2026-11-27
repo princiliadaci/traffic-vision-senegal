@@ -1,0 +1,188 @@
+# Registry of mobility measures of the Dakar 2026 Youth Olympic Games (JOJ),
+# each mapped to what a camera can measure.
+#
+# Read with `traffic-vision measures` and checked against a run with
+# `traffic-vision check <measure_id> <run_folder>`.
+#
+# Fields
+#   kind             reserved_lane | class_ban | closure
+#   period           first and last day the measure applied (ISO dates)
+#   window           daily hours (HH:MM-HH:MM, may cross midnight); empty = all day
+#   allowed_classes  classes a reserved lane is meant for
+#   banned_classes   classes a ban targets, in the six road-user classes of the tool
+#   zone             name of the polygon drawn on the camera view for a lane
+#   indicator        what the video gives
+#   observability    high: the video sees what the rule is about
+#                    partial: it sees the flow but not the permit, weight or reason
+#                    low: video alone cannot tell
+#   video_cannot_see what the rule depends on that a camera cannot see
+#
+# Facts come from the sources listed with each measure; check the official
+# texts before reusing them. The tool does not read plates or faces.
+
+measures:
+
+  - id: olympic_lane_a1_opening
+    name: Olympic lane on the Autoroute de l'Avenir, opening ceremony
+    kind: reserved_lane
+    place: Autoroute de l'Avenir (A1), Patte-d'Oie to AIBD section, left lane
+    period: ["2026-10-31", "2026-10-31"]
+    window: "07:00-23:30"
+    allowed_classes: [bus]
+    zone: olympic_lane
+    indicator: >
+      Share of buses (Games shuttles) among vehicles using the left lane, and
+      flow in the lane against the general lanes. Accredited cars were allowed
+      too, so cars in the lane are not offences; trucks were banned on the
+      motorway that day.
+    observability: partial
+    video_cannot_see: COJOJ accreditation stickers
+    notes: >
+      Towards Diamniadio from 7:00 to 19:00, opposite direction from 19:00 to
+      23:30. Set by an order of the Governor of Dakar of 20 October 2026.
+    sources:
+      - https://lesoleil.sn/joj-dakar-2026/joj-dakar-2026-une-voie-olympique-et-des-restrictions-sur-lautoroute-de-lavenir-pour-la-ceremonie-douverture/
+
+  - id: trucks_toll_motorway_opening
+    name: Heavy vehicles banned on the toll motorway, opening ceremony
+    kind: class_ban
+    place: Toll motorway, Patte-d'Oie to Sebikhotane, both directions
+    period: ["2026-10-31", "2026-10-31"]
+    window: "07:00-23:30"
+    banned_classes: [truck]
+    indicator: Trucks per hour during the ban against the hours before or after it.
+    observability: partial
+    video_cannot_see: >
+      Gross weight (the rule targets vehicles over 3.5 t; COCO "truck" also
+      covers vans and pickups) and authorised local deliveries
+    sources:
+      - https://lesoleil.sn/joj-dakar-2026/joj-dakar-2026-une-voie-olympique-et-des-restrictions-sur-lautoroute-de-lavenir-pour-la-ceremonie-douverture/
+
+  - id: trucks_rufisque_bridge_opening
+    name: Heavy vehicles banned on the Rufisque - Keur Ndiaye Lo bridge, opening ceremony
+    kind: class_ban
+    place: Rufisque - Keur Ndiaye Lo bridge
+    period: ["2026-10-31", "2026-10-31"]
+    window: "07:00-19:00"
+    banned_classes: [truck]
+    indicator: Trucks per hour during the ban against the hours outside it.
+    observability: partial
+    video_cannot_see: Gross weight over 3.5 t; authorised local deliveries
+    sources:
+      - https://lesoleil.sn/joj-dakar-2026/joj-dakar-2026-une-voie-olympique-et-des-restrictions-sur-lautoroute-de-lavenir-pour-la-ceremonie-douverture/
+
+  - id: trucks_rn1_opening
+    name: Heavy vehicles banned on the RN1, opening ceremony
+    kind: class_ban
+    place: National Road 1, Rufisque to Sebikhotane
+    period: ["2026-10-31", "2026-10-31"]
+    window: "15:00-19:00"
+    banned_classes: [truck]
+    indicator: Trucks per hour from 15:00 to 19:00 against earlier hours of the same day.
+    observability: partial
+    video_cannot_see: Gross weight over 3.5 t; authorised local deliveries
+    sources:
+      - https://lesoleil.sn/joj-dakar-2026/joj-dakar-2026-une-voie-olympique-et-des-restrictions-sur-lautoroute-de-lavenir-pour-la-ceremonie-douverture/
+
+  - id: blaise_diagne_bus_carriageway
+    name: Avenue Blaise Diagne carriageway beside the Iba Mar Diop stadium, accredited Games buses only
+    kind: reserved_lane
+    place: Avenue Blaise Diagne, Medina, along the Iba Mar Diop complex
+    period: ["2026-10-30", "2026-11-13"]
+    allowed_classes: [bus]
+    zone: bus_carriageway
+    indicator: >
+      Share of buses among vehicles on the reserved carriageway, other vehicles
+      per hour, and the flow on the opposite carriageway, which stayed open to all.
+    observability: partial
+    video_cannot_see: Whether a bus is an accredited Games bus or a regular bus
+    notes: The guide gives the regulation start (30 October) and the removal of temporary measures (14 November).
+    sources:
+      - https://www.vie-publique.sn/documents/14568/guide-mobilite-dakar-joj-2026
+
+  - id: iba_mar_diop_trucks_two_wheelers
+    name: Trucks over 3.5 t and two-wheelers banned around the Iba Mar Diop complex
+    kind: class_ban
+    place: Streets around the Iba Mar Diop complex, Medina
+    period: ["2026-10-30", "2026-11-13"]
+    banned_classes: [truck, motorcycle]
+    indicator: Motorbikes and trucks per hour on the streets around the site, during against after the Games.
+    observability: partial
+    video_cannot_see: Weight over 3.5 t; delivery or resident permits (VAPP sticker)
+    sources:
+      - https://www.vie-publique.sn/documents/14568/guide-mobilite-dakar-joj-2026
+
+  - id: seydou_nourou_tall_trucks
+    name: Heavy goods vehicles banned on the Allees Seydou Nourou Tall
+    kind: class_ban
+    place: Allees Seydou Nourou Tall, near the Tour de l'Oeuf and Point E sites
+    period: ["2026-10-30", "2026-11-13"]
+    banned_classes: [truck]
+    indicator: Trucks per hour during the Games against after them.
+    observability: partial
+    video_cannot_see: Weight over 3.5 t
+    sources:
+      - https://www.vie-publique.sn/documents/14568/guide-mobilite-dakar-joj-2026
+
+  - id: corniche_ouest_road_events
+    name: Corniche Ouest closed for road events
+    kind: closure
+    place: Corniche Ouest, between the Place du Souvenir africain and the Mamelles roundabout
+    period: ["2026-11-03", "2026-11-10"]
+    indicator: >
+      Difference-in-differences of flows on the diversion routes (avenue Cheikh
+      Anta Diop, rue Aime Cesaire, Fann Residence) against a control street,
+      closure day against a comparable normal day.
+    observability: high
+    video_cannot_see: Trips that were cancelled or moved to another hour rather than diverted
+    notes: >
+      Closed in both directions 6:00 to 16:00 on 7, 8 and 10 November; closed
+      from 9 November 15:00 to 10 November 16:00 for road cycling; other
+      closures with varying hours from 3 November, about 74 hours in a week by
+      one newspaper's count. Diversions listed in the mobility guide.
+    sources:
+      - https://www.vie-publique.sn/documents/14568/guide-mobilite-dakar-joj-2026
+      - https://seneweb.com/en/news/Transport/joj-dakar-2026-le-cetud-devoile-le-plan-de-circulation-sur-la-corniche-ouest_n_999002564.html
+      - https://senego.com/joj-dakar-2026-pour-le-cyclisme-les-deviations-de-la-corniche-ouest-a-suivre_2021893.html
+      - https://www.afrik.com/joj-dakar-2026-vingt-cinq-heures-sans-voitures-sur-la-corniche-ouest-en-pleine-semaine
+
+  - id: diamniadio_spheres_shuttle_lane
+    name: Right lane of the Spheres ministerielles axis reserved for shuttles and accredited vehicles
+    kind: reserved_lane
+    place: Diamniadio, Spheres ministerielles axis
+    period: ["2026-10-30", "2026-11-13"]
+    allowed_classes: [bus]
+    zone: shuttle_lane
+    indicator: Share of buses (shuttles) among vehicles in the right lane; other vehicles per hour.
+    observability: partial
+    video_cannot_see: Accreditation of cars, which were also allowed
+    sources:
+      - https://www.vie-publique.sn/documents/14568/guide-mobilite-dakar-joj-2026
+
+  - id: saly_night_motorbike_ban
+    name: Motorbikes banned at night in Saly Portudal, Ngaparou and Somone
+    kind: class_ban
+    place: Communes of Saly Portudal, Ngaparou and Somone (arrondissement of Sindia)
+    period: ["2026-10-31", "2026-11-14"]
+    window: "18:00-07:00"
+    banned_classes: [motorcycle]
+    indicator: Motorbikes per hour after 18:00 against before 18:00 on the same evening.
+    observability: high
+    video_cannot_see: Exempted users, if any; night video lowers detection accuracy
+    notes: Order no. 002024 of 30 October 2026 by the sub-prefect of Sindia.
+    sources:
+      - https://www.dakaractu.com/PETITE-COTE-Les-motos-interdites-de-circulation-la-nuit-a-Saly-Ngaparou-et-Somone_a277643.html
+
+  - id: saly_two_wheelers_trucks
+    name: Motorbikes, tricycles, trucks and carts restricted around the Saly sites
+    kind: class_ban
+    place: Saly, accredited roads and sector entrances
+    period: ["2026-10-30", "2026-11-13"]
+    banned_classes: [motorcycle, truck]
+    indicator: Motorbikes and trucks per hour at the sector entrances, during against after the Games.
+    observability: low
+    video_cannot_see: >
+      Tricycles and horse carts are not classes of COCO models: a model trained
+      on local images is needed before this rule can be measured
+    sources:
+      - https://www.vie-publique.sn/documents/14568/guide-mobilite-dakar-joj-2026

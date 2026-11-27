@@ -1,13 +1,13 @@
 # Scene file for `traffic-vision run --config configs/scenes.example.yaml --scene <scene_id>`
 #
-# One scene = one camera position and one period. To evaluate a measure, record
-# the same place, same weekday and same time of day, once before the measure and
-# once while it applies, then run `traffic-vision compare`.
+# One scene = one camera position and one period. The templates below follow
+# the study design of docs/research.md for the Dakar 2026 Youth Olympic Games.
+# The video files are not shipped with the repository: record or obtain your
+# own (with the authorisations required by Law 2008-12) and update the paths.
 #
-# The scenes below are templates built around the Dakar 2026 Youth Olympic Games
-# traffic plan (see docs/context_joj_dakar_2026.md). The video files are not
-# shipped with the repository: record or obtain your own and update the paths.
-# Line points are fractions of the frame (x, y), so they do not depend on resolution.
+# Points are fractions of the frame (x, y), so they do not depend on resolution.
+# `measure` links a scene to an entry of configs/joj_measures.yaml.
+# `start_clock` is the clock time of the first frame; rules with hours need it.
 
 defaults:
   model: yolo11n.pt
@@ -17,32 +17,72 @@ defaults:
   output_dir: outputs
 
 scenes:
-  - scene_id: corniche_ouest_before
-    description: Corniche Ouest, normal traffic, weekday 7:00-8:00
+  # Corniche Ouest closure: effect on a diversion route, against a control street.
+  # Four recordings for `traffic-vision did`.
+  - scene_id: cheikh_anta_diop_before
+    description: Avenue Cheikh Anta Diop (diversion route), normal weekday, 6:00-16:00
     period: before
-    video: data/corniche_ouest_before.mp4
-    line: [[0.05, 0.62], [0.95, 0.62]]
-    line_directions: [to_ouakam, to_fann]
+    measure: corniche_ouest_road_events
+    video: data/cheikh_anta_diop_before.mp4
+    start_clock: "2026-10-27T06:00:00"
+    line: [[0.05, 0.70], [0.95, 0.70]]
+    line_directions: [to_fann, to_ouakam]
 
-  - scene_id: corniche_ouest_during
-    description: Corniche Ouest under the Games restrictions, same weekday and hour
+  - scene_id: cheikh_anta_diop_closure
+    description: Same point, Corniche closed (7 November 2026, 6:00-16:00)
     period: during
-    video: data/corniche_ouest_during.mp4
-    line: [[0.05, 0.62], [0.95, 0.62]]
-    line_directions: [to_ouakam, to_fann]
+    measure: corniche_ouest_road_events
+    video: data/cheikh_anta_diop_closure.mp4
+    start_clock: "2026-11-07T06:00:00"
+    line: [[0.05, 0.70], [0.95, 0.70]]
+    line_directions: [to_fann, to_ouakam]
 
-  - scene_id: blaise_diagne_bus_lanes
-    description: Avenue Blaise Diagne, two lanes reserved for accredited buses
+  - scene_id: control_street_before
+    description: Control street of the same kind, outside the diversion plan, same hours
+    period: before
+    video: data/control_street_before.mp4
+    start_clock: "2026-10-27T06:00:00"
+    line: [[0.05, 0.65], [0.95, 0.65]]
+    line_directions: [inbound, outbound]
+
+  - scene_id: control_street_closure
+    description: Control street, closure day
     period: during
+    video: data/control_street_closure.mp4
+    start_clock: "2026-11-07T06:00:00"
+    line: [[0.05, 0.65], [0.95, 0.65]]
+    line_directions: [inbound, outbound]
+
+  # Reserved carriageway: who used it. Draw the zone on the reserved lanes only.
+  - scene_id: blaise_diagne_during
+    description: Avenue Blaise Diagne beside the Iba Mar Diop stadium, Games period
+    period: during
+    measure: blaise_diagne_bus_carriageway
     video: data/blaise_diagne_during.mp4
+    start_clock: "2026-11-04T07:00:00"
     line: [[0.10, 0.70], [0.90, 0.70]]
     line_directions: [northbound, southbound]
-    classes: [bus, car, truck, motorcycle]
+    zones:
+      bus_carriageway: [[0.10, 0.45], [0.48, 0.45], [0.50, 0.95], [0.05, 0.95]]
 
+  # Night ban on motorbikes in Saly: film across 18:00 to compare both sides.
+  - scene_id: saly_entrance_evening
+    description: Saly entrance, 17:00-20:00, Games period
+    period: during
+    measure: saly_night_motorbike_ban
+    video: data/saly_entrance_evening.mp4
+    start_clock: "2026-11-05T17:00:00"
+    line: [[0.05, 0.60], [0.95, 0.60]]
+    line_directions: [into_saly, out_of_saly]
+    classes: [motorcycle, bicycle, car, bus, truck]
+
+  # Demo used in the README (stock clip, London, not Dakar).
   - scene_id: demo_pexels
-    description: Static-camera stock clip (Pexels) used for the demo in the README; not Dakar
+    description: Static-camera stock clip (Pexels 12159587); the zone is an illustration, not a bus lane
     period: demo
     video: data/12159587-hd_1920_1080_50fps.mp4
     line: [[0.05, 0.62], [0.76, 0.62]]
     line_directions: [towards_camera, away_from_camera]
     stride: 2
+    zones:
+      kerb_lane: [[0.335, 0.40], [0.395, 0.385], [0.49, 0.66], [0.405, 0.68]]

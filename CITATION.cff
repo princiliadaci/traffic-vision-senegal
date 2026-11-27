@@ -1,16 +1,26 @@
 cff-version: 1.2.0
 message: "If you use this software, please cite it as below."
-title: "Traffic Vision Senegal: counting road users from video to support mobility planning"
+title: "Traffic Vision Senegal: measuring the effect of mobility measures from video, with the Dakar 2026 Youth Olympic Games as case study"
+abstract: >
+  Open-source pipeline that counts road users from existing video (YOLO11 and
+  ByteTrack), checks traffic rules (reserved lanes, bans by the hour) and
+  estimates the effect of a measure by difference-in-differences, with counts
+  corrected by a manual sample and intervals that account for autocorrelated
+  traffic. Includes a registry of the mobility measures of the Dakar 2026
+  Youth Olympic Games and a simulation study of the estimator.
 authors:
   - family-names: "DACI"
     given-names: "Princilia"
     affiliation: "African Institute for Mathematical Sciences (AIMS) Senegal"
-version: 0.1.0
+version: 0.2.0
 date-released: 2026-11-27
 license: MIT
 repository-code: "https://github.com/princiliadaci/traffic-vision-senegal"
 keywords:
   - computer vision
   - traffic counting
+  - policy evaluation
+  - difference-in-differences
   - Dakar 2026 Youth Olympic Games
   - urban mobility
+  - Senegal

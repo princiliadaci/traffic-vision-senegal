@@ -3,6 +3,12 @@
 Counting detections frame by frame overcounts: a car seen in 90 frames is
 still one car. Here an object is counted once, when the bottom-centre of its
 box (where it touches the road) crosses a counting line drawn across the lanes.
+
+A car stopped on the line at a red light makes its box jitter by a few pixels
+from frame to frame, which looks like crossing back and forth. On the demo
+clip this produced five spurious crossings by four waiting cars. A dead
+band of ``margin`` pixels on each side of the line fixes it: a side change is
+only registered once the contact point is clearly past the line.
 """
 
 from __future__ import annotations
@@ -45,30 +51,48 @@ class CountingLine:
     b: Point
     name: str = "line"
     directions: tuple[str, str] = ("in", "out")
+    margin: float = 0.0  # dead band around the line, in pixels
     _last: dict[int, Point] = field(default_factory=dict, repr=False)
+    _state: dict[int, int] = field(default_factory=dict, repr=False)  # last clear side, -1 or +1
     _counted: set[tuple[int, str]] = field(default_factory=set, repr=False)
     counts: dict[str, dict[str, int]] = field(
         default_factory=lambda: defaultdict(lambda: defaultdict(int)), repr=False
     )
 
     @classmethod
-    def from_relative(cls, a: Point, b: Point, width: int, height: int, **kw) -> "CountingLine":
-        """Build a line from coordinates given as fractions of the frame size."""
-        return cls((a[0] * width, a[1] * height), (b[0] * width, b[1] * height), **kw)
+    def from_relative(cls, a: Point, b: Point, width: int, height: int,
+                      margin_frac: float = 0.0, **kw) -> "CountingLine":
+        """Build a line from coordinates given as fractions of the frame size.
+
+        ``margin_frac`` sets the dead band as a fraction of the frame height.
+        """
+        return cls((a[0] * width, a[1] * height), (b[0] * width, b[1] * height),
+                   margin=margin_frac * height, **kw)
+
+    def _clear_side(self, p: Point) -> int:
+        """+1 or -1 when p is beyond the dead band, 0 inside it."""
+        length = max(((self.b[0] - self.a[0]) ** 2 + (self.b[1] - self.a[1]) ** 2) ** 0.5, 1e-9)
+        dist = _side(self.a, self.b, p) / length
+        if dist > self.margin:
+            return 1
+        if dist < -self.margin:
+            return -1
+        return 0
 
     def update(self, track_id: int, road_class: str, anchor: Point,
                frame: int, video_time_s: float) -> CrossingEvent | None:
         """Feed the new position of a track; return an event if it just crossed."""
         prev = self._last.get(track_id)
         self._last[track_id] = anchor
-        if prev is None:
-            return None
-        s_prev, s_now = _side(self.a, self.b, prev), _side(self.a, self.b, anchor)
-        if s_prev == 0 or s_prev * s_now >= 0:
+        side = self._clear_side(anchor)
+        last_side = self._state.get(track_id)
+        if side != 0:
+            self._state[track_id] = side
+        if prev is None or side == 0 or last_side is None or side == last_side:
             return None
         if not _within_segment(self.a, self.b, prev, anchor):
             return None
-        direction = self.directions[0] if s_prev < 0 < s_now else self.directions[1]
+        direction = self.directions[0] if last_side < 0 < side else self.directions[1]
         key = (track_id, direction)
         if key in self._counted:  # a box jittering on the line counts once
             return None

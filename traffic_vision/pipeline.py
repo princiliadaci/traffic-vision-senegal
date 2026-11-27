@@ -6,7 +6,12 @@ both through Ultralytics. Each run writes a folder with:
     annotated.mp4    the video with boxes, track ids, the counting line and live counters
     detections.csv   one row per tracked object per processed frame
     crossings.csv    one row per object crossing the counting line
+    zone_events.csv  one row per object using a zone (a reserved lane), if zones are set
     summary.json     run settings and totals
+
+With ``start_clock`` (the clock time of the first frame), every event also
+gets a ``clock_time``, which rules with hours (a truck ban from 7:00 to 19:00)
+need.
 """
 
 from __future__ import annotations
@@ -16,6 +21,7 @@ import json
 import logging
 import time
 from dataclasses import asdict, dataclass, field
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Callable, Iterator
 
@@ -24,6 +30,7 @@ import numpy as np
 
 from .counting import CountingLine
 from .taxonomy import ROAD_CLASSES, model_class_ids
+from .zones import Zone, ZoneCounter
 
 log = logging.getLogger(__name__)
 
@@ -37,11 +44,14 @@ COLOURS = {  # BGR
 }
 
 DETECTION_FIELDS = [
-    "scene_id", "video", "frame", "video_time_s", "track_id", "road_class",
+    "scene_id", "video", "frame", "video_time_s", "track_id", "road_class", "frame_class",
     "model_label", "confidence", "x1", "y1", "x2", "y2", "anchor_x", "anchor_y", "speed_px_s",
 ]
 CROSSING_FIELDS = ["scene_id", "video", "line", "track_id", "road_class",
-                   "direction", "frame", "video_time_s"]
+                   "direction", "frame", "video_time_s", "clock_time"]
+ZONE_FIELDS = ["scene_id", "video", "zone", "track_id", "road_class", "frame",
+               "video_time_s", "clock_time"]
+ZONE_COLOUR = (0, 200, 255)  # BGR, amber
 
 
 @dataclass
@@ -56,12 +66,16 @@ class RunConfig:
     stride: int = 1  # process one frame out of `stride`
     line: tuple[tuple[float, float], tuple[float, float]] = ((0.05, 0.6), (0.95, 0.6))
     line_directions: tuple[str, str] = ("in", "out")
+    line_margin: float = 0.01  # dead band around the line, fraction of frame height
     max_seconds: float | None = None
     output_dir: str = "outputs"
     save_video: bool = True
     tracker: str = "bytetrack.yaml"
     device: str | None = None
     drop_riders: bool = True  # a person on a motorbike or bicycle is not a pedestrian
+    zones: dict[str, list[list[float]]] | None = None  # name -> polygon, fractions of the frame
+    zone_min_frames: int = 2  # frames inside a zone before an object counts as using it
+    start_clock: str | None = None  # clock time of the first frame, ISO, e.g. 2026-11-07T07:00:00
 
 
 def drop_riders(boxes: list[dict], min_overlap: float = 0.3) -> list[dict]:
@@ -104,19 +118,30 @@ class FrameResult:
 
 
 def _draw(frame: np.ndarray, boxes: list[dict], line: CountingLine,
-          totals: dict[str, dict[str, int]], directions: tuple[str, str], t: float) -> np.ndarray:
+          totals: dict[str, dict[str, int]], directions: tuple[str, str], t: float,
+          zones: ZoneCounter | None = None) -> np.ndarray:
     out = frame.copy()
     h, w = out.shape[:2]
     scale = max(0.5, w / 1600)
+    if zones is not None and zones.zones:
+        fill = out.copy()
+        zt = zones.totals()
+        for z in zones.zones:
+            pts = np.array(z.polygon, dtype=np.int32)
+            cv2.fillPoly(fill, [pts], ZONE_COLOUR)
+        out = cv2.addWeighted(fill, 0.28, out, 0.72, 0)
+        for z in zones.zones:
+            pts = np.array(z.polygon, dtype=np.int32)
+            cv2.polylines(out, [pts], True, ZONE_COLOUR, max(2, int(3 * scale)))
     a = tuple(int(v) for v in line.a)
     b = tuple(int(v) for v in line.b)
     cv2.line(out, a, b, (0, 230, 255), max(2, int(3 * scale)))
 
     for bx in boxes:
-        c = COLOURS.get(bx["road_class"], (255, 255, 255))
+        c = COLOURS.get(bx.get("track_class", bx["road_class"]), (255, 255, 255))
         x1, y1, x2, y2 = bx["xyxy"]
         cv2.rectangle(out, (x1, y1), (x2, y2), c, max(1, int(2 * scale)))
-        label = f'{bx["road_class"]} #{bx["track_id"]}'
+        label = f'{bx.get("track_class", bx["road_class"])} #{bx["track_id"]}'
         fs = 0.5 * scale
         (tw, th), _ = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, fs, 1)
         cv2.rectangle(out, (x1, max(0, y1 - th - 6)), (x1 + tw + 4, y1), c, -1)
@@ -129,11 +154,15 @@ def _draw(frame: np.ndarray, boxes: list[dict], line: CountingLine,
         d = totals.get(cls)
         if d:
             rows.append(f"{cls:<10} {d.get(directions[0], 0):>4} {d.get(directions[1], 0):>6}")
+    if zones is not None:
+        for zname, per_class in zones.totals().items():
+            detail = ", ".join(f"{c} {n}" for c, n in sorted(per_class.items()))
+            rows.append(f"{zname}: {detail}")
     if not boxes:
         rows.append("no selected object in view")
     fs = 0.55 * scale
     lh = int(26 * scale)
-    pw = int(330 * scale)
+    pw = int(max(330, 11 * max(len(r) for r in rows)) * scale)
     overlay = out.copy()
     cv2.rectangle(overlay, (10, 10), (10 + pw, 20 + lh * len(rows)), (20, 20, 20), -1)
     out = cv2.addWeighted(overlay, 0.6, out, 0.4, 0)
@@ -167,7 +196,17 @@ def iter_run(cfg: RunConfig, model=None) -> Iterator[FrameResult]:
     out_dir = Path(cfg.output_dir) / cfg.scene_id
     out_dir.mkdir(parents=True, exist_ok=True)
     line = CountingLine.from_relative(cfg.line[0], cfg.line[1], w, h, name="line_1",
+                                      margin_frac=cfg.line_margin,
                                       directions=tuple(cfg.line_directions))
+    zone_counter = None
+    if cfg.zones:
+        zone_counter = ZoneCounter([Zone.from_relative(name, [tuple(p) for p in pts], w, h)
+                                    for name, pts in cfg.zones.items()], cfg.zone_min_frames)
+    t_start = datetime.fromisoformat(cfg.start_clock) if cfg.start_clock else None
+
+    def clock(t: float) -> str:
+        return (t_start + timedelta(seconds=t)).isoformat(timespec="seconds") if t_start else ""
+
     writer = None
     if cfg.save_video:
         writer = cv2.VideoWriter(str(out_dir / "annotated.mp4"),
@@ -179,9 +218,15 @@ def iter_run(cfg: RunConfig, model=None) -> Iterator[FrameResult]:
     cross_w = csv.DictWriter(cross_f, CROSSING_FIELDS)
     det_w.writeheader()
     cross_w.writeheader()
+    zone_f = zone_w = None
+    if zone_counter is not None:
+        zone_f = open(out_dir / "zone_events.csv", "w", newline="")
+        zone_w = csv.DictWriter(zone_f, ZONE_FIELDS)
+        zone_w.writeheader()
 
     video_name = Path(cfg.video).name
     seen_tracks: dict[str, set[int]] = {}
+    votes: dict[int, dict[str, float]] = {}  # track -> class -> summed confidence
     last_anchor: dict[int, tuple[float, float, float]] = {}  # track -> (x, y, t)
     empty_frames = processed = 0
     t0 = time.time()
@@ -215,8 +260,15 @@ def iter_run(cfg: RunConfig, model=None) -> Iterator[FrameResult]:
                                     "model_label": model.names[int(c)], "confidence": float(cf)})
             boxes = drop_riders(raw) if cfg.drop_riders else raw
             for bx in boxes:
+                # A track can flicker between classes (a bus half hidden by a pole is
+                # read as a car or a truck for a few frames). Events use the class
+                # with the highest summed confidence so far for that track.
+                v = votes.setdefault(bx["track_id"], {})
+                v[bx["road_class"]] = v.get(bx["road_class"], 0.0) + bx["confidence"]
+                bx["track_class"] = max(v, key=v.get)
+            for bx in boxes:
                 x1, y1, x2, y2 = bx["xyxy"]
-                tid, road = bx["track_id"], bx["road_class"]
+                tid, road = bx["track_id"], bx["track_class"]
                 anchor = ((x1 + x2) / 2, float(y2))  # where the object touches the road
                 seen_tracks.setdefault(road, set()).add(tid)
                 speed = ""
@@ -229,6 +281,7 @@ def iter_run(cfg: RunConfig, model=None) -> Iterator[FrameResult]:
                     "scene_id": cfg.scene_id, "video": video_name, "frame": frame_index,
                     "video_time_s": round(t, 3), "track_id": tid, "road_class": road,
                     "model_label": bx["model_label"], "confidence": round(bx["confidence"], 4),
+                    "frame_class": bx["road_class"],
                     "x1": x1, "y1": y1, "x2": x2, "y2": y2,
                     "anchor_x": round(anchor[0], 1), "anchor_y": round(anchor[1], 1),
                     "speed_px_s": speed,
@@ -236,11 +289,16 @@ def iter_run(cfg: RunConfig, model=None) -> Iterator[FrameResult]:
                 ev = line.update(tid, road, anchor, frame_index, t)
                 if ev:
                     cross_w.writerow({"scene_id": cfg.scene_id, "video": video_name,
-                                      "line": line.name, **asdict(ev)})
+                                      "line": line.name, **asdict(ev),
+                                      "clock_time": clock(ev.video_time_s)})
+                if zone_counter is not None:
+                    for zev in zone_counter.update(tid, road, anchor, frame_index, t):
+                        zone_w.writerow({"scene_id": cfg.scene_id, "video": video_name,
+                                         **asdict(zev), "clock_time": clock(zev.video_time_s)})
             if not boxes:
                 empty_frames += 1
             totals = line.totals()
-            img = _draw(frame, boxes, line, totals, line.directions, t)
+            img = _draw(frame, boxes, line, totals, line.directions, t, zone_counter)
             if writer is not None:
                 writer.write(img)
             if processed % 100 == 0:
@@ -253,6 +311,8 @@ def iter_run(cfg: RunConfig, model=None) -> Iterator[FrameResult]:
             writer.release()
         det_f.close()
         cross_f.close()
+        if zone_f is not None:
+            zone_f.close()
 
     duration = (frame_index + 1) / fps
     summary = {
@@ -263,6 +323,7 @@ def iter_run(cfg: RunConfig, model=None) -> Iterator[FrameResult]:
         "frames_without_selected_objects": empty_frames,
         "unique_tracks_seen": {k: len(v) for k, v in sorted(seen_tracks.items())},
         "line_crossings": line.totals(),
+        "zone_use": zone_counter.totals() if zone_counter is not None else {},
         "processing_seconds": round(time.time() - t0, 1),
         "author": "Traffic Vision Senegal, Princilia DACI",
     }
